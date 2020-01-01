@@ -9,9 +9,9 @@ class TemplatesManager extends Manager {
   * @return {Promise}
   */
   import_into_project(project_id, file, params) {
-    const args = Object.assign( {}, params, { project_id, file });
-    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
-    return this.api.post('templates/import_into_project', args, files, headers);
+    const args = Object.assign({}, params, { project_id, file });
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    return this.api.post('templates/import_into_project', args, file, headers);
   }
 
   /**
@@ -21,7 +21,7 @@ class TemplatesManager extends Manager {
   * @return {Promise}
   */
   export_as_file(project_id, params) {
-    const args = Object.assign( {}, params, { project_id });
+    const args = Object.assign({}, params, { project_id });
     return this.api.post('templates/export_as_file', args);
   }
 
@@ -32,7 +32,7 @@ class TemplatesManager extends Manager {
   * @return {Promise}
   */
   export_as_url(project_id, params) {
-    const args = Object.assign( {}, params, { project_id });
+    const args = Object.assign({}, params, { project_id });
     return this.api.post('templates/export_as_url', args);
   }
 }

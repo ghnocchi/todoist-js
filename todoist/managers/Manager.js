@@ -5,8 +5,12 @@ class Manager {
   }
 
   // should be re-defined in a subclass
-  get state_name() { return ''; }
-  get object_type() { return ''; }
+  get state_name() {
+    return '';
+  }
+  get object_type() {
+    return '';
+  }
 
   /**
   * Finds and returns the object based on its id.
@@ -18,7 +22,7 @@ class Manager {
     let response = null;
     this.api.state[this.state_name].find((obj) => {
       // 2nd term has weak comparison for num-str match.
-      if (obj.id === obj_id || obj.temp_id == obj_id) {
+      if (obj.id === obj_id || obj.temp_id === obj_id) {
         response = obj;
       }
     });
@@ -37,16 +41,16 @@ class Manager {
   *   can be a string used as type or an object with desired params.
   * @param {Object} cmdArgs The arguments for the command.
   */
-  queueCmd( cmdDef, cmdArgs = {} ) {
+  queueCmd(cmdDef, cmdArgs = {}) {
     const cmd = Object.assign(
       {
-        uuid: this.api.generate_uuid(),
+        uuid: this.api.generate_uuid()
       },
       (
         typeof cmdDef === 'string' ? { type: cmdDef } : cmdDef
       ),
       {
-        args: cmdArgs,
+        args: cmdArgs
       }
     );
     this.api.queue.push(cmd);

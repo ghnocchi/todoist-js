@@ -28,7 +28,7 @@ class Item extends Model {
       is_deleted: 0,
       is_archived: 0,
       sync_id: null,
-      date_added: '',
+      date_added: ''
     };
   }
 
@@ -54,7 +54,7 @@ class Item extends Model {
   * @param {number} to_project
   */
   move(to_project) {
-    this.api.items.move({ [this.project_id]: [this.id] }, to_project);
+    this.api.items.move({ [this.project_id]: [this.id]}, to_project);
     this.project_id = to_project;
   }
 
@@ -80,7 +80,7 @@ class Item extends Model {
   * @param {boolean} update_item_orders
   * @param {Object} restore_state
   */
-  uncomplete(update_item_orders = 1, restore_state = {}){
+  uncomplete(update_item_orders = 1, restore_state = {}) {
     this.api.items.uncomplete([this.id], update_item_orders, restore_state);
     this.checked = 0;
     this.in_history = 0;
@@ -105,6 +105,6 @@ class Item extends Model {
     this.due_date_utc = new_date_utc || this.due_date_utc;
     this.date_string = date_string || this.date_string;
   }
-};
+}
 
 export default Item;

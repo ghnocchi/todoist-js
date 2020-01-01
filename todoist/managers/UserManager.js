@@ -101,7 +101,7 @@ class UserManager extends Manager {
     return this.api.post('user/update_notification_setting', {
       notification_type,
       service,
-      dont_notify,
+      dont_notify
     });
   }
 }

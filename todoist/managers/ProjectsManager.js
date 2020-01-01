@@ -2,8 +2,12 @@ import Manager from './Manager';
 import Project from './../models/Project';
 
 class ProjectsManager extends Manager {
-  get state_name() { return 'projects'; }
-  get object_type() { return 'project'; }
+  get state_name() {
+    return 'projects';
+  }
+  get object_type() {
+    return 'project';
+  }
 
   /**
   * Creates a local project object.
@@ -18,11 +22,12 @@ class ProjectsManager extends Manager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'project_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
     return obj;
   }
@@ -97,6 +102,7 @@ class ProjectsManager extends Manager {
     this.queueCmd('share_project', {
       project_id,
       email,
+      message
     });
   }
 
@@ -132,7 +138,7 @@ class ProjectsManager extends Manager {
 
       const data = {
         projects: response.project ? [response.project] : [],
-        project_notes: response.notes ? [response.notes] : [],
+        project_notes: response.notes ? [response.notes] : []
       };
 
       this.api.update_state(data);

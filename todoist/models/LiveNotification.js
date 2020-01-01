@@ -15,7 +15,7 @@ class LiveNotification extends Model {
       notification_key: '',
       notification_type: '',
       seq_no: 0,
-      state: '',
+      state: ''
     };
   }
 

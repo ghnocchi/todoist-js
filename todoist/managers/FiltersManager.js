@@ -3,8 +3,12 @@ import Filter from './../models/Filter';
 
 class FiltersManager extends Manager {
 
-  get state_name() { return 'filters'; }
-  get object_type() { return 'filter'; }
+  get state_name() {
+    return 'filters';
+  }
+  get object_type() {
+    return 'filter';
+  }
 
   /**
   * Creates a local filter object.
@@ -15,16 +19,17 @@ class FiltersManager extends Manager {
   */
   add(name, query, params) {
     const obj = new Filter({ name, query }, this.api);
-    obj.temp_id = obj['id'] = this.api.generate_uuid();
+    obj.temp_id = obj.id = this.api.generate_uuid();
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'filter_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
     return obj;
   }
@@ -70,14 +75,14 @@ class FiltersManager extends Manager {
   */
   get(filter_id) {
     const params = {
-      filter_id: filter_id,
+      filter_id: filter_id
     };
     return this.api.get('filters/get', params).then((response) => {
       if (response.error) {
         return null;
       }
       const data = {
-        filters: response.filters ? [filters] : []
+        filters: response.filters ? [response.filters] : []
       };
       this.api.update_state(data);
 

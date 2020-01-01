@@ -3,7 +3,7 @@
 *   requests, tokens and responses.
 * @author Cosmitar
 */
-import 'fetch-everywhere';
+import fetch from 'fetch-everywhere';
 import { generate_uuid } from './utils/uuid';
 /**
 * @class Session
@@ -73,7 +73,7 @@ class Session {
     const query = this._dataToQueryString({
       client_id: this._client,
       scope: this._scope,
-      state: this._state,
+      state: this._state
     });
     return `${this._auth_url}?${query}`;
   }
@@ -86,7 +86,7 @@ class Session {
     return this.request(this._exchange_token_url, 'POST', {
       client_id: this._client,
       client_secret: this._secret,
-      code: this._code,
+      code: this._code
     });
   }
 
@@ -128,7 +128,7 @@ class Session {
       Accept: 'application/json, text/plain, */*',
       // content type text/plain avoid preflight request not supported
       // by API server
-      'Content-Type': 'text/plain',
+      'Content-Type': 'text/plain'
     }, customHeaders);
 
     if (this._token) {
@@ -144,7 +144,7 @@ class Session {
     return fetch(request_url, {
       method: method,
       headers: headers,
-      body: /GET|HEAD/.test(method) ? null : JSON.stringify(data),
+      body: /GET|HEAD/.test(method) ? null : JSON.stringify(data)
     }).then(response => {
       if (response.error_code) {
         throw new Error(`(cod: ${response.error_code}) ${response.error}`);
@@ -164,9 +164,9 @@ class Session {
       // Todoist API always returns a JSON, even on error (except on templates as files)
       if (/attachment/.test(response.headers.get('content-disposition'))) {
         return response;
-      } else {
-        return response.json();
       }
+      return response.json();
+
     });
   }
 }

@@ -11,7 +11,7 @@ class Collaborator extends Model {
       email: '',
       full_name: '',
       timezone: '',
-      image_id: null,
+      image_id: null
     };
   }
 

@@ -1,5 +1,4 @@
 require('dotenv').config();
-require("babel-polyfill");
 import {
   getDateString,
 } from './helpers';

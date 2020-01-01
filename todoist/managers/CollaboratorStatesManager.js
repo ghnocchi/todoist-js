@@ -2,7 +2,9 @@ import Manager from './Manager';
 
 class CollaboratorStatesManager extends Manager {
 
-  get state_name() { return 'collaborator_states'; }
+  get state_name() {
+    return 'collaborator_states';
+  }
 
   /**
   * Finds and returns the collaborator state based on the project and user

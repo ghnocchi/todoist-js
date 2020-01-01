@@ -12,8 +12,9 @@ class Model {
     Object.keys(Object.assign({ temp_id: '' }, this.definition, data)).map((k) => {
       Object.defineProperty(this, k, {
         get: () => this.data[k],
-        set: (val) => this.data[k] = val,
-      })
+        // eslint-disable-next-line no-return-assign
+        set: (val) => this.data[k] = val
+      });
     });
   }
 

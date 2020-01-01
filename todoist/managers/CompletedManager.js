@@ -1,6 +1,6 @@
 import Manager from './Manager';
 
-class CompletedManager extends Manager{
+class CompletedManager extends Manager {
   /**
   * Returns the user's recent productivity stats.
   * @return {Promise}

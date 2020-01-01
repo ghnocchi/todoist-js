@@ -15,7 +15,7 @@ class Project extends Model {
       collapsed: 0,
       shared: 0,
       is_deleted: 0,
-      is_archived: 0,
+      is_archived: 0
     };
   }
 

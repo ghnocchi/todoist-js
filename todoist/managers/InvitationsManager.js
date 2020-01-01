@@ -1,7 +1,9 @@
 import Manager from './Manager';
 
 class InvitationsManager extends Manager {
-  get object_type() { return 'share_invitation'; }
+  get object_type() {
+    return 'share_invitation';
+  }
 
   /**
   * Accepts an invitation to share a project.

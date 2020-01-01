@@ -3,7 +3,9 @@ import ProjectNote from './../models/ProjectNote';
 
 class ProjectNotesManager extends GenericNotesManager {
 
-  get state_name() { return 'project_notes'; }
+  get state_name() {
+    return 'project_notes';
+  }
 
   /**
   * Creates a local project note object.
@@ -19,11 +21,12 @@ class ProjectNotesManager extends GenericNotesManager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'note_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
     return obj;
   }

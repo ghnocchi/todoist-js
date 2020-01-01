@@ -2,7 +2,9 @@ import Manager from './Manager';
 
 class GenericNotesManager extends Manager {
 
-  get object_type() { return 'note'; }
+  get object_type() {
+    return 'note';
+  }
 
   /**
   * Updates an note remotely.

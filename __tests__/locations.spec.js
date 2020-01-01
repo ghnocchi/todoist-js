@@ -1,5 +1,4 @@
 require('dotenv').config();
-require("babel-polyfill");
 
 import API from './../todoist/Api';
 const api = new API(process.env.ACCESS_TOKEN);

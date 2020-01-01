@@ -1,6 +1,5 @@
 const request = require('request');
 require('dotenv').config();
-require('babel-polyfill');
 // increase timeout for remote response delay
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 

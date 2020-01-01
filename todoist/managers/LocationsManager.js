@@ -2,7 +2,9 @@ import Manager from './Manager';
 
 class LocationsManager extends Manager {
 
-  get state_name() { return 'locations'; }
+  get state_name() {
+    return 'locations';
+  }
 
   /**
   * Clears the locations.

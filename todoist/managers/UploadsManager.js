@@ -8,7 +8,7 @@ class UploadsManager extends Manager {
   * @return {Promise}
   */
   add(files, params) {
-    const args = Object.assign( {}, params, { project_id });
+    const args = Object.assign({}, params);
     // should get a file, maybe file should be a file handler
     // @TODO make API.post to manage files
     return this.api.post('uploads/add', args, files);

@@ -3,8 +3,12 @@ import Item from './../models/Item';
 
 class ItemsManager extends Manager {
 
-  get state_name() { return 'items'; }
-  get object_type() { return 'item'; }
+  get state_name() {
+    return 'items';
+  }
+  get object_type() {
+    return 'item';
+  }
 
   /**
   * Creates a local item object.
@@ -20,11 +24,12 @@ class ItemsManager extends Manager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'item_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
     return obj;
   }
@@ -35,7 +40,7 @@ class ItemsManager extends Manager {
   * @param {Object} params
   */
   update(item_id, params) {
-    const args = Object.assign( {}, params, { id: item_id });
+    const args = Object.assign({}, params, { id: item_id });
     this.queueCmd('item_update', args);
   }
 
@@ -63,7 +68,7 @@ class ItemsManager extends Manager {
   move(project_items, to_project) {
     this.queueCmd('item_move', {
       project_items,
-      to_project,
+      to_project
     });
   }
 
@@ -83,7 +88,7 @@ class ItemsManager extends Manager {
   complete(item_ids, force_history) {
     this.queueCmd('item_complete', {
       ids: item_ids,
-      force_history,
+      force_history
     });
   }
 
@@ -96,11 +101,11 @@ class ItemsManager extends Manager {
   uncomplete(item_ids, update_item_orders, restore_state) {
     const args = {
       ids: item_ids,
-      update_item_orders,
+      update_item_orders
     };
 
     if (restore_state) {
-      args['restore_state'] = restore_state;
+      args.restore_state = restore_state;
     }
 
     this.queueCmd('item_uncomplete', args);
@@ -115,7 +120,7 @@ class ItemsManager extends Manager {
   */
   update_date_complete(item_id, new_date_utc, date_string, is_forward) {
     const args = {
-      'id': item_id,
+      id: item_id
     };
 
     if (new_date_utc) {
@@ -177,7 +182,7 @@ class ItemsManager extends Manager {
         projects: response.project ? [response.project] : [],
         items: response.item ? [response.item] : [],
         // @TODO check how to assign notes here
-        notes: response.note ? [...response.notes] :[],
+        notes: response.note ? [...response.notes] : []
       };
       this.api.update_state(data);
 

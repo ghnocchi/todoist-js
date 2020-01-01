@@ -11,7 +11,7 @@ class Label extends Model {
       name: '',
       color: 0,
       item_order: 0,
-      is_deleted: 0,
+      is_deleted: 0
     };
   }
 
@@ -31,6 +31,6 @@ class Label extends Model {
     this.api.labels.delete(this.id);
     this.is_deleted = 1;
   }
-};
+}
 
 export default Label;

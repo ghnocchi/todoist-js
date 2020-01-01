@@ -1,5 +1,6 @@
-# OBSOLETE
+# Forked from OBSOLETE
 ## Todoist V7 endpoint is deprecated
+## Adding V8 support in this fork
 
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 

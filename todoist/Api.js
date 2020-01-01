@@ -39,7 +39,6 @@ import Reminder from './models/Reminder';
 
 import { generate_uuid } from './utils/uuid';
 
-require("babel-polyfill");
 /**
 * @class Session
 */
@@ -91,7 +90,7 @@ class API {
       projects: [],
       reminders: [],
       settings_notifications: {},
-      user: {},
+      user: {}
     };
   }
 
@@ -136,7 +135,7 @@ class API {
         day_orders_timestamp: this.state.day_orders_timestamp,
         include_notification_settings: 1,
         resource_types: JSON.stringify(['all']),
-        commands: JSON.stringify(commands),
+        commands: JSON.stringify(commands)
       }
     );
 
@@ -160,6 +159,7 @@ class API {
   * @return {Promise}
   */
   query(params = []) {
+    // eslint-disable-next-line no-console
     console.warning('You are using a deprecated method "query". Unexpected behaviors might occur. See: https://github.com/Doist/todoist-api/issues/22');
     return this.session.get(
       this.get_api_url('query'),
@@ -193,7 +193,7 @@ class API {
       notes: Note,
       project_notes: ProjectNote,
       projects: Project,
-      reminders: Reminder,
+      reminders: Reminder
     };
 
     // Updating these type of data is a bit more complicated, since it is
@@ -206,17 +206,17 @@ class API {
       // Collect a promise for each object due to some this.find_object are asynchronous
       // since they hit the server looking for remote objects
       const typePromises = (syncdata[datatype] || []).map((remoteObj) => {
-        return Promise.resolve().then(async() => {
+        return Promise.resolve().then(async () => {
           // Find out whether the object already exists in the local state.
           const localObj = await this.find_object(datatype, remoteObj);
           if (localObj) {
             // If the object is already present in the local state, then
             // we either update it
-              Object.assign(localObj.data, remoteObj);
+            Object.assign(localObj.data, remoteObj);
           } else {
             // If not, then the object is new and it should be added
-              const newobj = new resp_models_mapping[datatype](remoteObj, this);
-              this.state[datatype].push(newobj);
+            const newobj = new resp_models_mapping[datatype](remoteObj, this);
+            this.state[datatype].push(newobj);
           }
         });
       });
@@ -263,9 +263,9 @@ class API {
       return this.projects.get_by_id(obj.id, true);
     } else if (objtype === 'reminders') {
       return this.reminders.get_by_id(obj.id, true);
-    } else {
-      return null;
     }
+    return null;
+
   }
 
   /**
@@ -301,7 +301,7 @@ class API {
   * @return {string}
   */
   get_api_url(resource = '') {
-    return `${this.api_endpoint}/API/v7/${resource}`;
+    return `${this.api_endpoint}/API/v8/${resource}`;
   }
 
   /**
@@ -325,14 +325,16 @@ class API {
   * calls are called directly.
   */
   async commit(raise_on_error = true) {
-    if (!this.queue.length) return;
+    if (!this.queue.length) {
+      return null;
+    }
 
     const response = await this.sync(this.queue);
     this.queue = [];
     if (response.sync_status) {
       if (raise_on_error) {
         Object.keys(response.sync_status).forEach((key) => {
-          if (response.sync_status[key] != 'ok') {
+          if (response.sync_status[key] !== 'ok') {
             throw new Error(`sync fail (${key}, ${JSON.stringify(response.sync_status[key])})`);
           }
         });
@@ -340,7 +342,7 @@ class API {
     }
     return response;
   }
-};
+}
 
 
 export default API;

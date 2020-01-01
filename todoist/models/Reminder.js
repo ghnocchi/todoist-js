@@ -1,4 +1,4 @@
-import Model from  './Model';
+import Model from './Model';
 
 /**
 * Implements a reminder.
@@ -16,7 +16,7 @@ class Reminder extends Model {
       date_lang: '',
       due_date_utc: '',
       minute_offset: 0,
-      is_deleted: 0,
+      is_deleted: 0
     };
   }
 

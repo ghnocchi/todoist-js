@@ -3,8 +3,12 @@ import Label from './../models/Label';
 
 class LabelsManager extends Manager {
 
-  get state_name() { return 'labels'; }
-  get object_type() { return 'label'; }
+  get state_name() {
+    return 'labels';
+  }
+  get object_type() {
+    return 'label';
+  }
 
   /**
   * Creates a local label object.
@@ -19,11 +23,12 @@ class LabelsManager extends Manager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'label_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
 
     return obj;
@@ -73,7 +78,7 @@ class LabelsManager extends Manager {
         return null;
       }
       const data = {
-        labels: response.label ? [response.label] : [],
+        labels: response.label ? [response.label] : []
       };
 
       this.api.update_state(data);

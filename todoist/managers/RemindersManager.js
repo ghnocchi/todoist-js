@@ -3,8 +3,12 @@ import Reminder from './../models/Reminder';
 
 class RemindersManager extends Manager {
 
-  get state_name() { return 'reminders'; }
-  get object_type() { return 'reminder'; }
+  get state_name() {
+    return 'reminders';
+  }
+  get object_type() {
+    return 'reminder';
+  }
 
   /**
   * Creates a local reminder object.
@@ -19,11 +23,12 @@ class RemindersManager extends Manager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'reminder_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
 
     return obj;
@@ -35,7 +40,7 @@ class RemindersManager extends Manager {
   * @param {Object} params
   */
   update(reminder_id, params) {
-    const args = Object.assign( {}, params, { id: reminder_id });
+    const args = Object.assign({}, params, { id: reminder_id });
     this.queueCmd('reminder_update', args);
   }
 
@@ -64,7 +69,7 @@ class RemindersManager extends Manager {
         return null;
       }
       const data = {
-        reminders: response.reminder ? [response.reminder] : [],
+        reminders: response.reminder ? [response.reminder] : []
       };
       this.api.update_state(data);
 

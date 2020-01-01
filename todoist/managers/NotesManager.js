@@ -3,7 +3,9 @@ import Note from './../models/Note';
 
 class NotesManager extends GenericNotesManager {
 
-  get state_name() { return 'notes'; }
+  get state_name() {
+    return 'notes';
+  }
 
   /**
   * Creates a local item note object.
@@ -19,11 +21,12 @@ class NotesManager extends GenericNotesManager {
     this.api.state[this.state_name].push(obj);
 
     // get obj data w/o id attribute
+    // eslint-disable-next-line no-unused-vars
     const { id, ...args } = obj.data;
 
     this.queueCmd({
       type: 'note_add',
-      temp_id: obj.temp_id,
+      temp_id: obj.temp_id
     }, args);
     return obj;
   }
@@ -40,7 +43,7 @@ class NotesManager extends GenericNotesManager {
         return null;
       }
       const data = {
-        notes: response.note ? [response.note] : [],
+        notes: response.note ? [response.note] : []
       };
 
       this.api.update_state(data);

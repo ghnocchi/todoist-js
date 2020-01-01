@@ -12,7 +12,7 @@ class Filter extends Model {
       query: '',
       color: 0,
       item_order: 0,
-      is_deleted: 0,
+      is_deleted: 0
     };
   }
 
@@ -32,6 +32,6 @@ class Filter extends Model {
     this.api.filters.delete(this.id);
     this.is_deleted = 1;
   }
-};
+}
 
 export default Filter;
