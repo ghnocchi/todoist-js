@@ -1,8 +1,18 @@
-require('dotenv').config();
+import API from '../todoist/Api';
+import { env } from './helpers';
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
-const api2 = new API(process.env.ALTERNATIVE_ACCOUNT_ACCESS_TOKEN);
+const api = new API(env.ACCESS_TOKEN);
+const api2 = new API(env.ALTERNATIVE_ACCOUNT_ACCESS_TOKEN);
+
+let project1;
+let project2;
+let response;
+let response2;
+let invitation1;
+let invitation2;
+let invitation1resp;
+let api2_project1_id;
+let api2_project2_id;
 
 afterAll(async () => {
   // from api
@@ -14,15 +24,6 @@ afterAll(async () => {
   await api2.commit();
 });
 
-let project1;
-let project2;
-let response;
-let response2;
-let invitation1;
-let invitation2;
-let invitation1resp;
-let api2_project1_id;
-let api2_project2_id;
 test('Manager should share a project', async () => {
   await api.sync();
   await api2.sync();

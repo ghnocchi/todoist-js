@@ -49,8 +49,8 @@ class ItemsManager extends Manager {
   * @param {Array.<number>} item_ids
   */
   delete(item_ids) {
-    this.queueCmd('item_delete', { ids: item_ids });
     item_ids.forEach(id => {
+      this.queueCmd('item_delete', { id });
       this.get_by_id(id, true).then(i => {
         if (i) {
           i.is_deleted = 1;
@@ -61,14 +61,24 @@ class ItemsManager extends Manager {
 
   /**
   * Moves items to another project remotely.
-  * @param {Object} project_items Mapping object with project
-  *   ids as keys and Array.<number> as list of item ids.
-  * @param {number} to_project Destination project id.
+  * @param {Array.<number>} item_ids
+  * @param {Object} destination, object with one of parent_id, project_id, section_id
   */
-  move(project_items, to_project) {
-    this.queueCmd('item_move', {
-      project_items,
-      to_project
+  move(item_ids, destination) {
+    const args = {};
+    if (destination.project_id) {
+      args.project_id = destination.project_id;
+    } else if (destination.parent_id) {
+      args.parent_id = destination.parent_id;
+    } else if (destination.section_id) {
+      args.section_id = destination.section_id;
+    } else {
+      throw new Error(`invalid ItemsManager.move() destination ${destination}`);
+    }
+
+    item_ids.forEach(id => {
+      args.id = id;
+      this.queueCmd('item_move', args);
     });
   }
 
@@ -83,32 +93,39 @@ class ItemsManager extends Manager {
   /**
   * Marks items as completed remotely.
   * @param {Array.<number>} item_ids
-  * @param {boolean} force_history
+  * @param {Object} params, optional force_history: boolean, date_completed: RFC3339-formatted date
   */
-  complete(item_ids, force_history) {
-    this.queueCmd('item_complete', {
-      ids: item_ids,
-      force_history
+  complete(item_ids, params = {}) {
+    item_ids.forEach(id => {
+      const args = { id };
+      if (params.force_history) {
+        args.force_history = params.force_history;
+      }
+      if (params.date_completed) {
+        args.date_completed = params.date_completed;
+      }
+      this.queueCmd('item_complete', args);
+      this.get_by_id(id, true).then(i => {
+        if (i) {
+          i.checked = 1;
+        }
+      });
     });
   }
 
   /**
   * Marks items as not completed remotely.
   * @param {Array.<number>} item_ids
-  * @param {boolean} update_item_orders
-  * @param {boolean} restore_state
   */
-  uncomplete(item_ids, update_item_orders, restore_state) {
-    const args = {
-      ids: item_ids,
-      update_item_orders
-    };
-
-    if (restore_state) {
-      args.restore_state = restore_state;
-    }
-
-    this.queueCmd('item_uncomplete', args);
+  uncomplete(item_ids) {
+    item_ids.forEach(id => {
+      this.queueCmd('item_uncomplete', { id });
+      this.get_by_id(id, true).then(i => {
+        if (i) {
+          i.checked = 0;
+        }
+      });
+    });
   }
 
   /**
@@ -136,15 +153,6 @@ class ItemsManager extends Manager {
     }
 
     this.queueCmd('item_update_date_complete', args);
-  }
-
-  /**
-  * Updates the order and indents of multiple items remotely.
-  * @param {object} ids_to_orders_indents Mapping object with item ids as
-  *   keys and values with Array.<number> length 2 where 1st element is order and 2nd indent.
-  */
-  update_orders_indents(ids_to_orders_indents) {
-    this.queueCmd('item_update_orders_indents', { ids_to_orders_indents });
   }
 
   /**

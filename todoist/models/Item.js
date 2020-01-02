@@ -9,11 +9,11 @@ class Item extends Model {
     return {
       id: 0,
       user_id: 0,
+      parent_id: 0,
       project_id: 0,
+      section_id: 0,
       content: '',
-      date_string: '',
-      date_lang: '',
-      due_date_utc: null,
+      due: {},
       indent: 0,
       priority: 0,
       item_order: 0,
@@ -51,11 +51,20 @@ class Item extends Model {
 
   /**
   * Moves item to another project.
-  * @param {number} to_project
+  * @param {Object} destination, object with one of parent_id, project_id, section_id
   */
-  move(to_project) {
-    this.api.items.move({ [this.project_id]: [this.id]}, to_project);
-    this.project_id = to_project;
+  move(destination) {
+    if (destination.project_id) {
+      this.project_id = destination.project_id;
+    } else if (destination.parent_id) {
+      this.parent_id = destination.parent_id;
+    } else if (destination.section_id) {
+      this.section_id = destination.section_id;
+    } else {
+      throw new Error(`invalid Item.move() destination ${destination}`);
+    }
+
+    this.api.items.move([this.id], destination);
   }
 
   /**

@@ -1,15 +1,16 @@
-require('dotenv').config();
+// XXX fails
+import API from '../todoist/Api';
+import { env } from './helpers';
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
+const api = new API(env.ACCESS_TOKEN);
+
+let note1;
+let item1;
 
 afterAll(async () => {
   item1.delete();
   await api.commit();
 });
-
-let note1;
-let item1;
 
 // only premium
 test('Manager should add a note', async () => {

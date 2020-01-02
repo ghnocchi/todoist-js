@@ -1,7 +1,9 @@
-require('dotenv').config();
+// XXX fails partially
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
+import API from '../todoist/Api';
+import { env } from './helpers';
+
+const api = new API(env.ACCESS_TOKEN);
 
 let project1 = null;
 let project2 = null;

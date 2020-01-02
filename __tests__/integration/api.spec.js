@@ -1,7 +1,7 @@
-require('dotenv').config();
+import API from '../todoist/Api';
+import { env } from './helpers';
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
+const api = new API(env.ACCESS_TOKEN);
 
 describe('Api tests', () => {
   test('Should get api url', () => {
@@ -32,4 +32,28 @@ describe('Api tests', () => {
     await api.commit();
   });
 
+  describe('Items', () => {
+    beforeAll(async () => {
+      await api.sync();
+    });
+
+    const itemBaseName = '_TestItemApi';
+
+    test('API should add an item', async () => {
+      let item1;
+
+      try {
+        const response = await api.add_item(`${itemBaseName}1`);
+        expect(response.content).toBe(`${itemBaseName}1`);
+
+        await api.sync();
+        expect(api.state.items.some(i => i.content === `${itemBaseName}1`)).toBe(true);
+        item1 = api.state.items.find(i => i.content === `${itemBaseName}1`);
+        expect(await api.items.get_by_id(item1.id)).toEqual(item1);
+      } finally {
+        item1.delete();
+        await api.commit();
+      }
+    });
+  });
 });

@@ -1,10 +1,13 @@
+// XXX fails
+
 const request = require('request');
-require('dotenv').config();
+import API from '../todoist/Api';
+import { env } from './helpers';
+
+const api = new API(env.ACCESS_TOKEN);
+
 // increase timeout for remote response delay
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
-
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
 
 let item1;
 let project1;

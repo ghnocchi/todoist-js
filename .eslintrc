@@ -12,7 +12,7 @@
     "parser": "babel-eslint",
     "rules": {
         // Possible Errors
-        "comma-dangle": [2, "never"],
+        "comma-dangle": [2, "only-multiline"],
         "no-cond-assign": 2,
         "no-console": 2,
         "no-constant-condition": 2,

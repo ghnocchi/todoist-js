@@ -1,7 +1,7 @@
-require('dotenv').config();
+import API from '../todoist/Api';
+import { env } from './helpers';
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
+const api = new API(env.ACCESS_TOKEN);
 
 let filter1;
 let filter2;

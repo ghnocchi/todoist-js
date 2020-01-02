@@ -54,8 +54,8 @@ class ProjectsManager extends Manager {
   * @param {Array.<number>} project_ids
   */
   delete(project_ids) {
-    this.queueCmd('project_delete', { ids: project_ids });
     project_ids.forEach(id => {
+      this.queueCmd('project_delete', { id });
       this.get_by_id(id, true).then(p => {
         if (p) {
           p.is_deleted = 1;

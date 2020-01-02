@@ -1,23 +1,18 @@
-require('dotenv').config();
-import {
-  getDateString,
-  getLongDateString
-} from './helpers';
+// XXX fails
 
-import API from './../todoist/Api';
-const api = new API(process.env.ACCESS_TOKEN);
+import API from '../todoist/Api';
+import { env, getDateString, getLongDateString } from './helpers';
 
+const api = new API(env.ACCESS_TOKEN);
 
+let reminder1;
+let reminder2;
+let item1;
 
 afterAll(async () => {
   item1.delete();
   await api.commit();
 });
-
-let reminder1;
-let reminder2;
-let item1;
-let inbox;
 
 test('Manager should add a reminder (relative)', async () => {
   await api.sync();

@@ -149,14 +149,11 @@ class Session {
       if (response.error_code) {
         throw new Error(`(cod: ${response.error_code}) ${response.error}`);
       }
-      return response;
-    }).then((response) => {
+
       if (!response.ok) {
         throw new Error(`(${response.status}) ${response.statusText}`);
       }
 
-      return response;
-    }).then(response => {
       if (response.sync_token) {
         this._sync_token = response.sync_token;
       }
@@ -165,8 +162,8 @@ class Session {
       if (/attachment/.test(response.headers.get('content-disposition'))) {
         return response;
       }
-      return response.json();
 
+      return response.json();
     });
   }
 }

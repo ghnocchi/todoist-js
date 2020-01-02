@@ -322,7 +322,7 @@ class API {
   * Commits all requests that are queued.  Note that, without calling this
   * method none of the changes that are made to the objects are actually
   * synchronized to the server, unless one of the aforementioned Sync API
-  * calls are called directly.
+  * calls is called directly.
   */
   async commit(raise_on_error = true) {
     if (!this.queue.length) {
@@ -330,16 +330,20 @@ class API {
     }
 
     const response = await this.sync(this.queue);
-    this.queue = [];
     if (response.sync_status) {
       if (raise_on_error) {
         Object.keys(response.sync_status).forEach((key) => {
           if (response.sync_status[key] !== 'ok') {
-            throw new Error(`sync fail (${key}, ${JSON.stringify(response.sync_status[key])})`);
+            const failedReq = this.queue.filter(e => e.uuid === key);
+            const failedReqStr = failedReq ? JSON.stringify(failedReq) : '(not found)';
+            this.queue = [];
+            throw new Error(`sync fail (${key}, ${failedReqStr}, ${JSON.stringify(response.sync_status[key])})`);
           }
         });
       }
     }
+
+    this.queue = [];
     return response;
   }
 }
