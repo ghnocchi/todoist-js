@@ -1,5 +1,5 @@
-import API from '../todoist/Api';
-import { env } from './helpers';
+import API from '../../todoist/Api';
+import { env } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 const api2 = new API(env.ALTERNATIVE_ACCOUNT_ACCESS_TOKEN);

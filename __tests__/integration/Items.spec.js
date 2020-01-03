@@ -1,5 +1,5 @@
-import API from '../todoist/Api';
-import { env, getDateString } from './helpers';
+import API from '../../todoist/Api';
+import { env, getDateString } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 

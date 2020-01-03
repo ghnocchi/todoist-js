@@ -46,8 +46,5 @@
   "dependencies": {
     "fetch-everywhere": "^1.0.5"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Cosmitar/todoist-js.git"
-  }
+  "repository": "git+https://github.com/Cosmitar/todoist-js.git"
 }

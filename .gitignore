@@ -1,7 +1,12 @@
 node_modules
 dist
 *.sublime-*
+.vscode
+*.code-workspace
+.idea
+*.iml
 .env
 .DS_Store
+*.swp
 npm-debug.log
 yarn-error.log
