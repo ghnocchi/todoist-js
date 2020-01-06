@@ -129,28 +129,22 @@ class ItemsManager extends Manager {
   }
 
   /**
-  * Completes a recurring task remotely.
-  * @param {number} item_id
-  * @param {string} new_date_utc
-  * @param {string} date_string
-  * @param {boolean} is_forward
-  */
-  update_date_complete(item_id, new_date_utc, date_string, is_forward) {
+   * Completes a recurring task remotely.
+   * @param {number} item_id
+   * @param {object} due Todoist Due date object
+   * {
+   *   date: '2018-11-15',
+   *   timezone: null,
+   *   is_recurring: false,
+   *   string: 'tomorrow',
+   *   lang: 'en',
+   * }
+   */
+  update_date_complete(item_id, due = null) {
     const args = {
-      id: item_id
+      id: item_id,
+      due
     };
-
-    if (new_date_utc) {
-      args.new_date_utc = new_date_utc;
-    }
-
-    if (date_string) {
-      args.date_string = date_string;
-    }
-
-    if (!isNaN(is_forward)) {
-      args.is_forward = is_forward;
-    }
 
     this.queueCmd('item_update_date_complete', args);
   }

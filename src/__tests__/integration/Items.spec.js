@@ -1,5 +1,5 @@
-import API from '../../todoist/Api';
-import { env, getDateString } from '../helpers';
+import API from '../../Api';
+import { env, getDateString, getShortDateString } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 
@@ -45,18 +45,45 @@ describe('Items model', () => {
   });
 
   test('should update its date info', async () => {
-    const date = new Date(2038, 1, 19, 3, 14, 7);
-    const date_string = getDateString(date);
+    let item2;
 
-    const item2 = api.items.add(`${itemBaseName}2`, inbox.id, { date_string });
+    try {
+      // add item (in the past) and specify as recurring daily
+      const date = new Date(2018, 1, 19, 3, 14, 0);
+      const dateString = getDateString(date);
+      item2 = api.items.add(`${itemBaseName}2`, inbox.id, { due: { date: dateString, string: 'every day' } });
 
-    const tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-    const new_date_utc = getDateString(tomorrow);
-    api.items.update_date_complete(item1.id, new_date_utc, 'every day', 0);
-    let response = await api.commit();
-    // Note: in Python's test date_string is expected to be 'every day' but we're receiving the date in string format YYYY-MM-DDTHH:MM:SS
-    expect(response.items.find(i => i.id === item2.id).due.string).toBe(date_string);
-    expect(api.state.items.find(i => i.id === item2.id).due.string).toBe(date_string);
+      // complete the recurring daily task, give new due date of today
+      const today = new Date(new Date().getTime());
+      const todayStr = getShortDateString(today);
+      item2.update_date_complete({ date: todayStr, string: 'every day' });
+
+      // single commit to minimize traffic (quota)
+      let response = await api.commit();
+
+      // check new due date of today
+      expect(response.items.find(i => i.id === item2.id).due.date).toEqual(todayStr);
+      expect(api.state.items.find(i => i.id === item2.id).due.date).toEqual(todayStr);
+      expect(item2.due.date).toEqual(todayStr);
+
+      // complete the recurring daily task with no explicit new due date
+      item2.update_date_complete();
+
+      // single commit to minimize traffic (quota)
+      response = await api.commit();
+
+      // check that completed task rescheduled another for tomorrow
+      const tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      const tomorrowStr = getShortDateString(tomorrow);
+      expect(response.items.find(i => i.id === item2.id).due.date).toEqual(tomorrowStr);
+      expect(api.state.items.find(i => i.id === item2.id).due.date).toEqual(tomorrowStr);
+      expect(item2.due.date).toEqual(tomorrowStr);
+    } finally {
+      if (item2) {
+        item2.delete();
+        await api.commit();
+      }
+    }
   });
 
   test('should complete and uncomplete itself', async () => {

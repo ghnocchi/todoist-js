@@ -1,5 +1,5 @@
 // XXX fails
-import API from '../../todoist/Api';
+import API from '../../Api';
 import { env } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);

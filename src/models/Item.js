@@ -103,16 +103,22 @@ class Item extends Model {
       ] = restore_state[this.id];
     }
   }
+
   /**
-  * Completes a recurring task.
-  * @param {string} new_date_utc
-  * @param {string} date_string
-  * @param {boolean} is_forward
-  */
-  update_date_complete(new_date_utc = '', date_string = '', is_forward = 0) {
-    this.api.items.update_date_complete(this.id, new_date_utc, date_string, is_forward);
-    this.due_date_utc = new_date_utc || this.due_date_utc;
-    this.date_string = date_string || this.date_string;
+   * Completes a recurring task.
+   * @param {object} due Todoist Due date object
+   * {
+   *   date: '2018-11-15',
+   *   timezone: null,
+   *   is_recurring: false,
+   *   string: 'tomorrow',
+   *   lang: 'en',
+   * }
+   */
+  update_date_complete(due = null) {
+    // TODO: validate due
+    this.api.items.update_date_complete(this.id, due);
+    this.due = due;
   }
 }
 

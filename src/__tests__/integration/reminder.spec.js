@@ -1,7 +1,7 @@
 // XXX fails
 
-import API from '../../todoist/Api';
-import { env } from '../helpers';
+import API from '../../Api';
+import { env, getDateString, getLongDateString } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 

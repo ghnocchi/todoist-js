@@ -4,9 +4,10 @@
   "description": "The (un)official Todoist javascript API library",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "yarn test",
+    "test:unit": "yarn test src/__tests__/unit/**",
     "lint": "eslint todoist",
-    "build": "babel -d dist/ todoist/ --source-maps"
+    "build": "rm -rf dist/ && babel -d dist/ src/ --source-maps --ignore '**/__mocks__,**/__tests__,**/__fixtures__'"
   },
   "keywords": [
     "todoist",

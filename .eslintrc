@@ -143,7 +143,7 @@
         //"space-after-keywords": 2,
         "space-before-blocks": 2,
         "object-curly-spacing": [2, "always", {
-            "objectsInObjects": false,
+            "objectsInObjects": true,
             "arraysInObjects": false
         }],
         "array-bracket-spacing": [2, "never"],

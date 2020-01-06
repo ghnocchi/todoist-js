@@ -1,5 +1,5 @@
-import API from '../../todoist/Api';
-import { env } from '../helpers';
+import API from '../../Api';
+import { env, getDateString, getShortDateString } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 
@@ -13,7 +13,7 @@ describe('Items Manager', () => {
     await api.sync();
     const inbox = api.state.projects.find(project => project.name === 'Inbox');
     item1 = api.items.add(`${itemBaseName}1`, inbox.id);
-    item2 = api.items.add(`${itemBaseName}2`, inbox.id);
+    item2 = api.items.add(`${itemBaseName}2`, inbox.id, { due: { date: '2014-10-20', string: 'every day' } });
   });
 
   afterAll(async () => {
@@ -80,6 +80,35 @@ describe('Items Manager', () => {
     project1.delete();
     await api.commit();
   });
+
+  test('should update its date info', async () => {
+    // complete the recurring daily task, give new due date of today
+    const today = new Date(new Date().getTime());
+    const todayStr = getShortDateString(today);
+    api.items.update_date_complete(item2.id, { date: todayStr, string: 'every day' });
+
+    // single commit to minimize traffic (quota)
+    let response = await api.commit();
+
+    // check new due date of today
+    expect(response.items.find(i => i.id === item2.id).due.date).toEqual(todayStr);
+    expect(api.state.items.find(i => i.id === item2.id).due.date).toEqual(todayStr);
+    expect(item2.due.date).toEqual(todayStr);
+
+    // complete the recurring daily task with no explicit new due date
+    api.items.update_date_complete(item2.id);
+
+    // single commit to minimize traffic (quota)
+    response = await api.commit();
+
+    // check that completed task rescheduled another for tomorrow
+    const tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStr = getShortDateString(tomorrow);
+    expect(response.items.find(i => i.id === item2.id).due.date).toEqual(tomorrowStr);
+    expect(api.state.items.find(i => i.id === item2.id).due.date).toEqual(tomorrowStr);
+    expect(item2.due.date).toEqual(tomorrowStr);
+  });
+
 
   test('should delete an item', async () => {
     const content = item2.content;

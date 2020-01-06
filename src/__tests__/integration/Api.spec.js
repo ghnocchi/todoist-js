@@ -1,4 +1,4 @@
-import API from '../../todoist/Api';
+import API from '../../Api';
 import { env } from '../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
@@ -11,6 +11,7 @@ describe('Api tests', () => {
 
   test('Should make a valid request (getting productivity stats)', async () => {
     const response = await api.session.request(api.get_api_url('completed/get_stats'), 'POST');
+    // noinspection JSUnresolvedVariable
     expect(response.karma_trend).toBeDefined();
   });
 
