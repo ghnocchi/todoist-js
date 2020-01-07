@@ -1,8 +1,8 @@
 /**
-* @fileoverview Implements the API that makes it possible to interact with a Todoist user
-*   account and its data.
-* @author Cosmitar (JS Version)
-*/
+ * @fileoverview Implements the API that makes it possible to interact with a Todoist user
+ *   account and its data.
+ * @author Cosmitar (JS Version)
+ */
 import Session from './Session';
 // managers
 import ActivityManager from './managers/ActivityManager';
@@ -40,8 +40,8 @@ import Reminder from './models/Reminder';
 import { generate_uuid } from './utils/uuid';
 
 /**
-* @class Session
-*/
+ * @class Session
+ */
 class API {
   constructor(token) {
     this.api_endpoint = 'https://todoist.com';
@@ -73,7 +73,12 @@ class API {
     this.business_users = new BusinessUsersManager(this);
     this.templates = new TemplatesManager(this);
     this.backups = new BackupsManager(this);
+
     // Local copy of all of the user's objects
+    this.resetState();
+  }
+
+  resetState() {
     this.state = {
       collaborator_states: [],
       collaborators: [],
@@ -90,44 +95,44 @@ class API {
       projects: [],
       reminders: [],
       settings_notifications: {},
-      user: {}
+      user: {},
     };
   }
 
   /**
-  * Performs a GET request prepending the API endpoint.
-  * @param {string} resource Requested resource
-  * @param {Object} params
-  * @return {Promise}
-  */
+   * Performs a GET request prepending the API endpoint.
+   * @param {string} resource Requested resource
+   * @param {Object} params
+   * @return {Promise}
+   */
   get(resource, params) {
     return this.session.get(
       this.get_api_url(resource),
-      params
+      params,
     );
   }
 
   /**
-  * Performs a POST request prepending the API endpoint.
-  * @param {string} resource Requested resource
-  * @param {Object} params
-  * @return {Promise}
-  */
+   * Performs a POST request prepending the API endpoint.
+   * @param {string} resource Requested resource
+   * @param {Object} params
+   * @return {Promise}
+   */
   post(resource, params, headers) {
     return this.session.post(
       this.get_api_url(resource),
       params,
-      headers
+      headers,
     );
   }
 
   /**
-  * Sends to the server the changes that were made locally, and also
-  *   fetches the latest updated data from the server.
-  * @param {Array.<object>} commands List of commands to be processed.
-  * @param {Object} params
-  * @return {Object} Server response
-  */
+   * Sends to the server the changes that were made locally, and also
+   *   fetches the latest updated data from the server.
+   * @param {Array.<object>} commands List of commands to be processed.
+   * @param {Object} params
+   * @return {Object} Server response
+   */
   async sync(commands = []) {
     const response = await this.session.get(
       this.get_api_url('sync'),
@@ -135,8 +140,8 @@ class API {
         day_orders_timestamp: this.state.day_orders_timestamp,
         include_notification_settings: 1,
         resource_types: JSON.stringify(['all']),
-        commands: JSON.stringify(commands)
-      }
+        commands: JSON.stringify(commands),
+      },
     );
 
     const temp_keys = Object.keys(response.temp_id_mapping || {});
@@ -153,25 +158,25 @@ class API {
   }
 
   /**
-  * Performs a server query
-  * @deprecated
-  * @param {Array.<Object>} params List of parameters to query
-  * @return {Promise}
-  */
+   * Performs a server query
+   * @deprecated
+   * @param {Array.<Object>} params List of parameters to query
+   * @return {Promise}
+   */
   query(params = []) {
     // eslint-disable-next-line no-console
     console.warning('You are using a deprecated method "query". Unexpected behaviors might occur. See: https://github.com/Doist/todoist-api/issues/22');
     return this.session.get(
       this.get_api_url('query'),
-      { queries: JSON.stringify(params) }
+      { queries: JSON.stringify(params) },
     );
   }
 
   /**
-  * Updates the local state, with the data returned by the server after a
-  *   sync.
-  * @param {Object} syncdata Data returned by {@code this.sync}.
-  */
+   * Updates the local state, with the data returned by the server after a
+   *   sync.
+   * @param {Object} syncdata Data returned by {@code this.sync}.
+   */
   async update_state(syncdata) {
     // It is straightforward to update these type of data, since it is
     // enough to just see if they are present in the sync data, and then
@@ -193,7 +198,7 @@ class API {
       notes: Note,
       project_notes: ProjectNote,
       projects: Project,
-      reminders: Reminder
+      reminders: Reminder,
     };
 
     // Updating these type of data is a bit more complicated, since it is
@@ -236,12 +241,12 @@ class API {
   }
 
   /**
-  * Searches for an object in the local state, depending on the type of object, and then on its primary key is.
-  *   If the object is found it is returned, and if not, then null is returned.
-  * @param {string} objtype Name for the type of the searching object.
-  * @param {Object} obj Object from where to take search paramters.
-  * @return {Object|null} Depending on search result.
-  */
+   * Searches for an object in the local state, depending on the type of object, and then on its primary key is.
+   *   If the object is found it is returned, and if not, then null is returned.
+   * @param {string} objtype Name for the type of the searching object.
+   * @param {Object} obj Object from where to take search paramters.
+   * @return {Object|null} Depending on search result.
+   */
   find_object(objtype, obj) {
     if (objtype === 'collaborators') {
       return this.collaborators.get_by_id(obj.id);
@@ -269,13 +274,13 @@ class API {
   }
 
   /**
-  * Replaces the temporary id generated locally when an object was first
-  *   created, with a real Id supplied by the server. True is returned if
-  *   the temporary id was found and replaced, and false otherwise.
-  * @param {string} temp_id Temporary item id.
-  * @param {number} new_id New item id.
-  * @return {boolean} Whether temporary id was found or not.
-  */
+   * Replaces the temporary id generated locally when an object was first
+   *   created, with a real Id supplied by the server. True is returned if
+   *   the temporary id was found and replaced, and false otherwise.
+   * @param {string} temp_id Temporary item id.
+   * @param {number} new_id New item id.
+   * @return {boolean} Whether temporary id was found or not.
+   */
   replace_temp_id(temp_id, new_id) {
     const datatypes = ['filters', 'items', 'labels', 'notes', 'project_notes', 'projects', 'reminders'];
     datatypes.forEach((type) => {
@@ -288,28 +293,28 @@ class API {
   }
 
   /**
-  * Generates a uuid.
-  * @return {string}
-  */
+   * Generates a uuid.
+   * @return {string}
+   */
   generate_uuid() {
     return generate_uuid();
   }
 
   /**
-  * Returns the full API url to hit.
-  * @param {string} resource The API resource.
-  * @return {string}
-  */
+   * Returns the full API url to hit.
+   * @param {string} resource The API resource.
+   * @return {string}
+   */
   get_api_url(resource = '') {
     return `${this.api_endpoint}/API/v8/${resource}`;
   }
 
   /**
-  * Adds a new task.
-  * @param {string} content The description of the task.
-  * @param {Object} params All other paramters to set in the new task.
-  * @return {Promise}
-  */
+   * Adds a new task.
+   * @param {string} content The description of the task.
+   * @param {Object} params All other paramters to set in the new task.
+   * @return {Promise}
+   */
   add_item(content, params = {}) {
     Object.assign(params, { content });
     if (params.labels) {
@@ -319,11 +324,11 @@ class API {
   }
 
   /**
-  * Commits all requests that are queued.  Note that, without calling this
-  * method none of the changes that are made to the objects are actually
-  * synchronized to the server, unless one of the aforementioned Sync API
-  * calls is called directly.
-  */
+   * Commits all requests that are queued.  Note that, without calling this
+   * method none of the changes that are made to the objects are actually
+   * synchronized to the server, unless one of the aforementioned Sync API
+   * calls is called directly.
+   */
   async commit(raise_on_error = true) {
     if (!this.queue.length) {
       return null;

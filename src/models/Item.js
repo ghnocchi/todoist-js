@@ -61,7 +61,7 @@ class Item extends Model {
     } else if (destination.section_id) {
       this.section_id = destination.section_id;
     } else {
-      throw new Error(`invalid Item.move() destination ${destination}`);
+      throw new Error(`invalid Item.move() destination ${JSON.stringify(destination)}`);
     }
 
     this.api.items.move([this.id], destination);
@@ -86,22 +86,10 @@ class Item extends Model {
 
   /**
   * Marks item as not completed.
-  * @param {boolean} update_item_orders
-  * @param {Object} restore_state
   */
-  uncomplete(update_item_orders = 1, restore_state = {}) {
-    this.api.items.uncomplete([this.id], update_item_orders, restore_state);
+  uncomplete() {
+    this.api.items.uncomplete([this.id]);
     this.checked = 0;
-    this.in_history = 0;
-
-    if (restore_state[this.id]) {
-      [
-        this.in_history,
-        this.checked,
-        this.item_order,
-        this.indent
-      ] = restore_state[this.id];
-    }
   }
 
   /**

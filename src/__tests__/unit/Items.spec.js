@@ -5,23 +5,26 @@ import { env, matcher, getDateString } from '../helpers';
 jest.mock('../../Session');
 const expectUuid = expect.stringMatching(matcher.uuid);
 
-const api = new API(env.ACCESS_TOKEN);
+let api = new API(env.ACCESS_TOKEN);
 
 const itemBaseName = '_TestItem';
 
 let item1;
 let inbox;
 
-beforeAll(async () => {
+beforeEach(async () => {
+  // reset cache
+  api.session.reset();
+  api.resetState();
+
   await api.sync();
   inbox = api.state.projects.find(project => project.name === 'Inbox');
   item1 = api.items.add(`${itemBaseName}1`, inbox.id);
-  await api.commit();
-});
 
-afterAll(async () => {
-  item1.delete();
   await api.commit();
+
+  // NB: the pseudo-response did not have temp_id_mapping, so update it here
+  item1.id = api.state.items.find(i => i.content === item1.content).id;
 });
 
 // check that the command JSON sent by the API looks as expected
@@ -68,7 +71,15 @@ describe('Items model', () => {
   });
 
   test('should complete itself', async () => {
+    // queue complete command
     item1.complete();
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.checked = 1;
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -78,7 +89,7 @@ describe('Items model', () => {
         type: 'item_complete',
         uuid: expectUuid,
         args: {
-          id: expectUuid,
+          id: item1.id,
         },
       },
     ]);
@@ -89,7 +100,15 @@ describe('Items model', () => {
   });
 
   test('should uncomplete itself', async () => {
+    // queue uncomplete command
     item1.uncomplete();
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.checked = 0;
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -99,7 +118,7 @@ describe('Items model', () => {
         type: 'item_uncomplete',
         uuid: expectUuid,
         args: {
-          id: expectUuid,
+          id: item1.id,
         },
       },
     ]);
@@ -110,8 +129,16 @@ describe('Items model', () => {
   });
 
   test('should update its content', async () => {
+    // queue update command
     const content = `${itemBaseName}Updated1`;
     item1.update({ content });
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.content = item1.content;
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -121,7 +148,7 @@ describe('Items model', () => {
         type: 'item_update',
         uuid: expectUuid,
         args: {
-          id: expectUuid,
+          id: item1.id,
           content,
         },
       },
@@ -185,7 +212,15 @@ describe('Items model', () => {
   });
 
   test('should complete and uncomplete itself', async () => {
+    // queue update command
     item1.complete();
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.checked = 1;
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -205,6 +240,7 @@ describe('Items model', () => {
 
     // toggle it back
     item1.uncomplete();
+    respItem.checked = 0;
     await api.commit();
 
     // check commands sent
@@ -242,7 +278,17 @@ describe('Items model', () => {
     for (const c of cases) {
       const dest = {};
       dest[c.dest_type] = c.dest_id;
+
+      // queue command
       item1.move(dest);
+
+      // prepare pseudo response
+      const response = api.session.syncResponse;
+      // eslint-disable-next-line no-loop-func
+      const respItem = response.items.find(i => i.id === item1.id);
+      respItem[c.dest_type] = c.dest_id;
+
+      // send command
       await api.commit();
 
       const args = {
@@ -263,10 +309,21 @@ describe('Items model', () => {
       // eslint-disable-next-line no-loop-func
       expect(api.state.items.find(i => i.id === item1.id)[c.dest_type]).toBe(c.dest_id);
     }
+
+    // check for invalid destination
+    expect(() => item1.move({ invalid: 666 })).toThrow(/invalid/);
   });
 
   test('should delete itself', async () => {
+    // queue delete command
     item1.delete();
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.is_deleted = 1;
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -282,6 +339,36 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
+    expect(item1.is_deleted).toBe(1);
+    expect(api.state.items.some(i => i.id === item1.id)).toBe(false);
+  });
+
+  test('should close itself', async () => {
+    // queue close item command
+    item1.close();
+
+    // prepare pseudo response
+    const response = api.session.syncResponse;
+    const respItem = response.items.find(i => i.id === item1.id);
+    respItem.is_deleted = 1;
+
+    // send command
+    await api.commit();
+
+    // check commands sent
+    const itemClose = api.session.popRequest();
+    checkCommandsSent(itemClose, [
+      {
+        type: 'item_close',
+        uuid: expectUuid,
+        args: {
+          id: item1.id,
+        },
+      },
+    ]);
+
+    // close is a shortcut for item_complete / item_update_date_complete,
+    // should do more complete checking of multiple scenarios (recurring task, tasks with children, etc)
     expect(item1.is_deleted).toBe(1);
     expect(api.state.items.some(i => i.id === item1.id)).toBe(false);
   });

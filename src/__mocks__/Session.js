@@ -1,8 +1,17 @@
 /* eslint-disable no-unused-vars */
 class Session {
   constructor() {
-    this._syncBase = require('../__fixtures__/syncBase').syncBase;
+    this.reloadBase();
     this._requests = [];
+  }
+
+  reset() {
+    this.reloadBase();
+    this.clearRequests();
+  }
+
+  reloadBase() {
+    this.syncResponse = JSON.parse(JSON.stringify(require('../__fixtures__/syncResponse').syncResponse));
   }
 
   popRequest() {
@@ -22,7 +31,7 @@ class Session {
   // noinspection JSMethodCanBeStatic
   request(url, method = 'GET', data = {}, customHeaders = {}) {
     this._requests.push({ url, method, data, customHeaders });
-    const syncBase = this._syncBase;
+    const syncBase = this.syncResponse;
     if (url.endsWith('/sync')) {
       return Promise.resolve(syncBase);
     }

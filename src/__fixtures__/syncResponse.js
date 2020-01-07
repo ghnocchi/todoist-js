@@ -1,4 +1,4 @@
-export const syncBase = {
+export const syncResponse = {
   tooltips: {
     scheduled: [],
     seen: [],
