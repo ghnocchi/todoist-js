@@ -224,25 +224,45 @@ describe('Items model', () => {
   });
 
   test('should move itself into a project', async () => {
-    const dest = 123;
-    item1.move({ project_id: dest });
-    await api.commit();
-
-    // check commands sent
-    const itemMove = api.session.popRequest();
-    checkCommandsSent(itemMove, [
+    const cases = [
       {
-        type: 'item_move',
-        uuid: expectUuid,
-        args: {
-          id: item1.id,
-          project_id: dest,
-        },
+        dest_id: 123,
+        dest_type: 'project_id',
       },
-    ]);
+      {
+        dest_id: 345,
+        dest_type: 'parent_id',
+      },
+      {
+        dest_id: 567,
+        dest_type: 'section_id',
+      },
+    ];
 
-    // check local cache and object state
-    expect(api.state.items.find(i => i.id === item1.id).project_id).toBe(dest);
+    for (const c of cases) {
+      const dest = {};
+      dest[c.dest_type] = c.dest_id;
+      item1.move(dest);
+      await api.commit();
+
+      const args = {
+        id: item1.id,
+      };
+
+      // check commands sent
+      let itemMove = api.session.popRequest();
+      checkCommandsSent(itemMove, [
+        {
+          type: 'item_move',
+          uuid: expectUuid,
+          args: { ...args, ...dest },
+        },
+      ]);
+
+      // check local cache and object state
+      // eslint-disable-next-line no-loop-func
+      expect(api.state.items.find(i => i.id === item1.id)[c.dest_type]).toBe(c.dest_id);
+    }
   });
 
   test('should delete itself', async () => {
