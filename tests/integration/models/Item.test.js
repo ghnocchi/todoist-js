@@ -1,5 +1,5 @@
-import API from '../../src/Api';
-import { env, getDateString, getShortDateString } from '../helpers';
+import API from '../../../src/Api';
+import { env, getDateString, getShortDateString } from '../../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 

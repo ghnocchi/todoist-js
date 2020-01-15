@@ -1,7 +1,7 @@
 // XXX fails partially
 
-import API from '../../src/Api';
-import { env } from '../helpers';
+import API from '../../../src/Api';
+import { env } from '../../helpers';
 
 const api = new API(env.ACCESS_TOKEN);
 
