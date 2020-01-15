@@ -104,6 +104,7 @@ class Item extends Model {
    * }
    */
   update_date_complete(due = null) {
+    // eslint-disable-next-line no-warning-comments
     // TODO: validate due
     this.api.items.update_date_complete(this.id, due);
     this.due = due;

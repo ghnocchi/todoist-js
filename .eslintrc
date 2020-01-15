@@ -7,9 +7,24 @@
     "globals": {
     },
     "plugins": [
-        "jest"
+        "jest",
+        "@typescript-eslint"
     ],
-    "parser": "babel-eslint",
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "settings": {
+        "import/extensions": [".js",".ts"],
+        "import/parsers": {
+            "@typescript-eslint/parser": [".ts"]
+        },
+        "import/resolver": {
+            "node": {
+                "extensions": [".js",".ts"]
+            }
+        }
+    },
     "rules": {
         // Possible Errors
         "comma-dangle": [2, "only-multiline"],
