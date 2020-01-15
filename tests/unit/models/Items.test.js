@@ -1,8 +1,8 @@
-import API from '../../Api';
-import { env, matcher, getDateString } from '../helpers';
+import API from '../../../src/Api';
+import { env, matcher, getDateString } from '../../helpers';
 
 // mock actual API communication
-jest.mock('../../Session');
+jest.mock('../../../src/Session', () => require('../../__mocks__/Session'));
 const expectUuid = expect.stringMatching(matcher.uuid);
 
 let api = new API(env.ACCESS_TOKEN);
