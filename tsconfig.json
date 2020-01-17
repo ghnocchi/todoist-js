@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
+    "declaration": true,
     "allowJs": true,
     "target": "esnext",
     "module": "esnext",
+    "moduleResolution": "node",
     "strict": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true
   },
   "include": [
     "src/**/*.ts",

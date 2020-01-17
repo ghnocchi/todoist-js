@@ -1,9 +1,8 @@
 /**
  * @fileoverview Handles session related actions like configuration,
  *   requests, tokens and responses.
- * @author Cosmitar
  */
-import fetch from 'fetch-everywhere';
+import axios, { AxiosResponse, Method } from 'axios'; // eslint-disable-line no-unused-vars
 import { generate_uuid } from './utils/uuid';
 
 export interface IConfig {
@@ -32,14 +31,57 @@ export class SessionConfig implements IConfig {
   exchange_token_url?: string;
 }
 
-export interface ISession {
-  config(config: SessionConfig): void;
+interface ITodoistError {
+  error_code: number;
+  error: string;
 }
+
+interface ITodoistStatus {
+  [key: string]: string | ITodoistError;
+}
+
+interface ITodoistRequestData {
+  [key: string]: (string | number | boolean);
+}
+
+interface ITodoistResponseData {
+  tooltips: object;
+  filters: [[object]];
+  sync_status: ITodoistStatus;
+  temp_id_mapping: object,
+  labels: [[object]];
+  locations: [];
+  project_notes: [[object]];
+  user: object;
+  full_sync: boolean;
+  sync_token: string;
+  day_orders: object;
+  projects: [[object]];
+  collaborators: [[object]];
+  stats: object;
+  day_orders_timestamp: string;
+  live_notifications_last_read_id: number;
+  items: [[object]];
+  incomplete_item_ids: [number];
+  reminders: [[object]];
+  user_settings: object;
+  incomplete_project_ids: [number];
+  notes: [[object]];
+  live_notifications: [[object]];
+  sections: [[object]];
+  collaborator_states: [[object]];
+  due_exceptions: [[object]];
+}
+
+interface ITodoistResponse extends AxiosResponse<ITodoistResponseData> {
+}
+
+type TodoistResponse = ITodoistResponse | ITodoistResponseData;
 
 /**
  * @class Session
  */
-class Session implements ISession {
+class Session {
   sessionConfig: SessionConfig;
 
   /**
@@ -81,7 +123,7 @@ class Session implements ISession {
    * Sets an access token for current session.
    * @param {string} token
    */
-  set accessToken(token) {
+  set accessToken(token: string) {
     this.sessionConfig.token = token;
   }
 
@@ -89,7 +131,7 @@ class Session implements ISession {
    * Sets the authorization code needed later for access token exchange.
    * @param {string} code
    */
-  set code(code) {
+  set code(code: string) {
     this.sessionConfig.code = code;
   }
 
@@ -97,12 +139,13 @@ class Session implements ISession {
    * Returns the authorization url based on configurations.
    * @return string The full authorization url.
    */
-  requestAuthorizationUrl() {
-    const query = this._dataToQueryString({
+  requestAuthorizationUrl(): string {
+    const query: string = this._dataToQueryString({
       client_id: this.sessionConfig.client_id,
       scope: this.sessionConfig.scope,
       state: this.sessionConfig.state,
     });
+
     return `${this.sessionConfig.auth_url}?${query}`;
   }
 
@@ -110,7 +153,7 @@ class Session implements ISession {
    * Requests an access token to the server.
    * @return {Promise}
    */
-  getAccessToken() {
+  getAccessToken(): Promise<TodoistResponse> {
     return this.request(this.sessionConfig.exchange_token_url, 'POST', {
       client_id: this.sessionConfig.client_id,
       client_secret: this.sessionConfig.client_secret,
@@ -125,7 +168,7 @@ class Session implements ISession {
    * @param {Object} data
    * @return {Promise}
    */
-  get(url, data = {}) {
+  get(url: string, data = {}): Promise<TodoistResponse> {
     return this.request(url, 'GET', data);
   }
 
@@ -136,13 +179,13 @@ class Session implements ISession {
    * @param {Object} customHeaders
    * @return {Promise}
    */
-  post(url, data = {}, customHeaders) {
+  post(url: string, data = {}, customHeaders: any = {}): Promise<TodoistResponse> {
     return this.request(url, 'POST', data, customHeaders);
   }
 
-  _dataToQueryString(data) {
+  private _dataToQueryString(data: ITodoistRequestData): string {
     return Object.keys(data)
-      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+      .map((k: string) => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
       .join('&');
   }
 
@@ -153,14 +196,14 @@ class Session implements ISession {
    * @param {Object} data
    * @param {Object} customHeaders
    */
-  request(url: string, method: string = 'GET', data: any = {}, customHeaders: any = {}) {
-    let headers = {
+  request(url: string, method: string = 'GET', data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<TodoistResponse> {
+    let headers: object = {
       ...{
         Accept: 'application/json, text/plain, */*',
         // content type text/plain avoid preflight request not supported
         // by API server
         'Content-Type': 'text/plain'
-      }, customHeaders
+      }, ...customHeaders
     };
 
     if (this.sessionConfig.token) {
@@ -171,31 +214,39 @@ class Session implements ISession {
       data.sync_token = this.sessionConfig.sync_token;
     }
 
-    const query = this._dataToQueryString(data);
-    const request_url = `${url}?${query}`;
-    return fetch(request_url, {
-      method: method,
+    const query: string = this._dataToQueryString(data);
+    const request_url: string = `${url}?${query}`;
+    return axios({
+      url: request_url,
+      method: <Method>method,
       headers: headers,
-      body: /GET|HEAD/.test(method) ? null : JSON.stringify(data)
-    }).then(response => {
-      if (response.error_code) {
-        throw new Error(`(cod: ${response.error_code}) ${response.error}`);
+      data: /GET|HEAD/.test(method) ? null : JSON.stringify(data)
+    }).then((response: ITodoistResponse) => {
+      const responseData: ITodoistResponseData = response.data;
+
+      if (responseData.sync_status) {
+        const error: [string, ITodoistError] = <[string, ITodoistError]>Object.entries(responseData.sync_status).find((e: any) =>
+          typeof e[1] === 'object' && e[1].hasOwnProperty('error'));
+        if (error) {
+          const [key, err]: [string, ITodoistError] = error;
+          throw new Error(`request error: ${key}: [${err.error_code}] ${err.error}`);
+        }
       }
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(`(${response.status}) ${response.statusText}`);
       }
 
-      if (response.sync_token) {
-        this.sessionConfig.sync_token = response.sync_token;
+      if (responseData.sync_token) {
+        this.sessionConfig.sync_token = responseData.sync_token;
       }
 
-      // Todoist API always returns a JSON, even on error (except on templates as files)
-      if (/attachment/.test(response.headers.get('content-disposition'))) {
+      // Todoist API always returns a JSON, even on error, except on templates as files
+      if (/attachment/.test(response.headers['content-disposition'])) {
         return response;
       }
 
-      return response.json();
+      return responseData;
     });
   }
 }

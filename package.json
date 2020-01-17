@@ -56,7 +56,7 @@
     "webpack-cli": "^3.3.10"
   },
   "dependencies": {
-    "fetch-everywhere": "^1.0.5"
+    "axios": "^0.19.1"
   },
   "repository": "git+https://github.com/Cosmitar/todoist-js.git"
 }
