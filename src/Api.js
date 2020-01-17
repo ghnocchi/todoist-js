@@ -40,7 +40,7 @@ import Reminder from './models/Reminder';
 import { generate_uuid } from './utils/uuid';
 
 /**
- * @class Session
+ * @class API
  */
 class API {
   constructor(token) {
