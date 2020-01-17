@@ -214,13 +214,20 @@ class Session {
       data.sync_token = this.sessionConfig.sync_token;
     }
 
-    const query: string = this._dataToQueryString(data);
-    const request_url: string = `${url}?${query}`;
+    // assemble GET vs POST parameters
+    let request_url: string = `${url}`;
+    let payloadData: string = null;
+    if (/GET|HEAD/.test(method)) {
+      request_url = `${request_url}?${this._dataToQueryString(data)}`;
+    } else {
+      payloadData = JSON.stringify(data);
+    }
+
     return axios({
       url: request_url,
       method: <Method>method,
       headers: headers,
-      data: /GET|HEAD/.test(method) ? null : JSON.stringify(data)
+      data: payloadData,
     }).then((response: ITodoistResponse) => {
       const responseData: ITodoistResponseData = response.data;
 
@@ -242,7 +249,7 @@ class Session {
       }
 
       // Todoist API always returns a JSON, even on error, except on templates as files
-      if (/attachment/.test(response.headers['content-disposition'])) {
+      if (response.headers && /attachment/.test(response.headers['content-disposition'])) {
         return response;
       }
 
