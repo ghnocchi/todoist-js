@@ -2,7 +2,8 @@
   "name": "todoist-js",
   "version": "0.4.0",
   "description": "The (un)official Todoist javascript API library",
-  "main": "dist/todoist-js.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "test:unit": "yarn test tests/unit",
