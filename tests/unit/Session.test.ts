@@ -3,9 +3,9 @@ import Session from '../../src/Session';
 
 jest.mock('axios');
 
-const token = 'lkasdf870913u24ioklj09afasdvmklasdt1243q';
-const baseUrl = 'http://testurl/blah';
-const response = {
+const token: string = 'lkasdf870913u24ioklj09afasdvmklasdt1243q';
+const baseUrl: string = 'http://testurl/blah';
+const response: any = {
   status: 200,
   data: {
     results: 'here',
@@ -13,7 +13,7 @@ const response = {
   },
 };
 
-let session;
+let session: Session;
 
 beforeEach(async () => {
   session = new Session({ token });
@@ -62,7 +62,7 @@ describe('Session', () => {
     // update config with auth info
     session.config(auth);
 
-    axios.mockImplementationOnce(() => Promise.resolve(response));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(response));
 
     const req = {
       data: expect.stringContaining(auth.client_secret),
@@ -79,10 +79,10 @@ describe('Session', () => {
   });
 
   test('should perform GET', async () => {
-    axios.mockImplementationOnce(() => Promise.resolve(response));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(response));
 
     const req = {
-      data: null,
+      data: <any>null,
       headers: expect.anything(),
       method: 'GET',
       url: `${baseUrl}?token=${token}`,
@@ -96,10 +96,10 @@ describe('Session', () => {
   });
 
   test('should perform GET request', async () => {
-    axios.mockImplementationOnce(() => Promise.resolve(response));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(response));
 
     const req = {
-      data: null,
+      data: <any>null,
       headers: expect.anything(),
       method: 'GET',
       url: `${baseUrl}?token=${token}`,
@@ -119,10 +119,10 @@ describe('Session', () => {
       data: {},
     };
 
-    axios.mockImplementationOnce(() => Promise.resolve(failResponse));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(failResponse));
 
     const req = {
-      data: null,
+      data: <any>null,
       headers: expect.anything(),
       method: 'GET',
       url: `${baseUrl}?token=${token}`,
@@ -148,10 +148,10 @@ describe('Session', () => {
       },
     };
 
-    axios.mockImplementationOnce(() => Promise.resolve(failResponse));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(failResponse));
 
     const req = {
-      data: null,
+      data: <any>null,
       headers: expect.anything(),
       method: 'GET',
       url: `${baseUrl}?token=${token}`,
@@ -165,7 +165,7 @@ describe('Session', () => {
   });
 
   test('should perform POST', async () => {
-    axios.mockImplementationOnce(() => Promise.resolve(response));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(response));
 
     const postData = {
       payload: 'weight',
@@ -186,7 +186,7 @@ describe('Session', () => {
   });
 
   test('should perform POST request', async () => {
-    axios.mockImplementationOnce(() => Promise.resolve(response));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(response));
 
     const postData = {
       payload: 'weight',
@@ -216,7 +216,7 @@ describe('Session', () => {
       },
     };
 
-    axios.mockImplementationOnce(() => Promise.resolve(templateResponse));
+    (axios as any).mockImplementationOnce(() => Promise.resolve(templateResponse));
 
     const postData = {
       payload: 'weight',

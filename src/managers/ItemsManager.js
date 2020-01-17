@@ -17,7 +17,7 @@ class ItemsManager extends Manager {
   * @param {Object} params
   * @return {Item}
   */
-  add(content, project_id, params) {
+  add(content, project_id, params = {}) {
     const obj = new Item({ content, project_id }, this.api);
     obj.temp_id = obj.id = this.api.generate_uuid();
     Object.assign(obj.data, params);
