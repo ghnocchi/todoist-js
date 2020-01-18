@@ -217,7 +217,11 @@ class API {
           if (localObj) {
             // If the object is already present in the local state, then
             // we either update it
-            Object.assign(localObj.data, remoteObj);
+            if (localObj.data) { // TODO: once .data is removed from all models, remove here
+              Object.assign(localObj.data, remoteObj);
+            } else {
+              Object.assign(localObj, remoteObj);
+            }
           } else {
             // If not, then the object is new and it should be added
             const newobj = new resp_models_mapping[datatype](remoteObj, this);
@@ -283,13 +287,20 @@ class API {
    */
   replace_temp_id(temp_id, new_id) {
     const datatypes = ['filters', 'items', 'labels', 'notes', 'project_notes', 'projects', 'reminders'];
-    datatypes.forEach((type) => {
-      this.state[type].forEach((obj, objIndex) => {
+    for (let typeIndex = 0; typeIndex < datatypes.length; typeIndex++) {
+      const stateObjects = this.state[datatypes[typeIndex]];
+      for (let objIndex = 0; objIndex < stateObjects.length; objIndex++) {
+        const obj = stateObjects[objIndex];
         if (obj.temp_id === temp_id) {
-          this.state[type][objIndex].id = new_id;
+          obj.id = new_id;
+          obj.temp_id = '';
+
+          // unique, so break as soon as we find a match
+          typeIndex = datatypes.length;
+          break;
         }
-      });
-    });
+      }
+    }
   }
 
   /**

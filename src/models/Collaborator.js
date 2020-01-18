@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a collaborator.
 */
-class Collaborator extends Model {
+class Collaborator extends DeprecatedModel {
 
   get definition() {
     return {

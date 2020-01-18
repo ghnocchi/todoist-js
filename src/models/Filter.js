@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a filter.
 */
-class Filter extends Model {
+class Filter extends DeprecatedModel {
 
   get definition() {
     return {

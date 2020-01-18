@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a live notification.
 */
-class LiveNotification extends Model {
+class LiveNotification extends DeprecatedModel {
 
   get definition() {
     return {

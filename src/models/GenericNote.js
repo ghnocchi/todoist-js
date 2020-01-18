@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a note.
 */
-class GenericNote extends Model {
+class GenericNote extends DeprecatedModel {
   constructor(data, api) {
     super(data, api);
     // has to be defined in subclasses

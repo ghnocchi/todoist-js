@@ -25,6 +25,11 @@
             }
         }
     },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        //"plugin:@typescript-eslint/recommended"
+    ],
     "rules": {
         // Possible Errors
         "comma-dangle": [2, "only-multiline"],

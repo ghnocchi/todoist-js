@@ -59,7 +59,6 @@ describe('Items model', () => {
         args: {
           content: item1.content,
           project_id: inbox.id,
-          temp_id: expectUuid,
         },
       },
     ]);
@@ -157,16 +156,24 @@ describe('Items model', () => {
     // check local cache and object state
     expect(api.state.items.some(i => i.content === content)).toBe(true);
     expect(item1.content).toEqual(content);
-    expect(await api.items.get_by_id(item1.id, true)).toEqual(item1);
+    expect((await api.items.get_by_id(item1.id, true)).content).toEqual(item1.content);
   });
 
   test('should update its date info', async () => {
     const item2 = api.state.items.find(i => i.content === `${itemBaseName}2`);
 
-    // complete the recurring daily task, give new due date of today
     const today = new Date(new Date().getTime());
     const todayStr = getDateString(today);
+
+    // queue complete the recurring daily task, give new due date of today
     item2.update_date_complete({ date: todayStr, string: 'every day' });
+
+    // prepare pseudo response
+    let response = api.session.syncResponse;
+    let respItem = response.items.find(i => i.id === item2.id);
+    respItem.due = { date: todayStr };
+
+    // send command
     await api.commit();
 
     // check commands sent
@@ -191,6 +198,13 @@ describe('Items model', () => {
 
     // complete the recurring daily task with no explicit new due date
     item2.update_date_complete();
+
+    // prepare pseudo response
+    response = api.session.syncResponse;
+    respItem = response.items.find(i => i.id === item2.id);
+    respItem.due = null;
+
+    // send command
     await api.commit();
 
     // check commands sent

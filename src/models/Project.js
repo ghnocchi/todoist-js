@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a project.
 */
-class Project extends Model {
+class Project extends DeprecatedModel {
 
   get definition() {
     return {

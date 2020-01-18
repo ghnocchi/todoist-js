@@ -1,5 +1,5 @@
 import Manager from './Manager';
-import Item from './../models/Item';
+import Item from '../models/Item';
 
 class ItemsManager extends Manager {
 
@@ -20,12 +20,11 @@ class ItemsManager extends Manager {
   add(content, project_id, params = {}) {
     const obj = new Item({ content, project_id }, this.api);
     obj.temp_id = obj.id = this.api.generate_uuid();
-    Object.assign(obj.data, params);
+    Object.assign(obj, params);
     this.api.state[this.state_name].push(obj);
 
-    // get obj data w/o id attribute
-    // eslint-disable-next-line no-unused-vars
-    const { id, ...args } = obj.data;
+    // get obj properties w/o id attribute
+    const { id, ...args } = obj.properties; // eslint-disable-line no-unused-vars
 
     this.queueCmd({
       type: 'item_add',
@@ -88,6 +87,11 @@ class ItemsManager extends Manager {
   */
   close(item_id) {
     this.queueCmd('item_close', { id: item_id });
+    this.get_by_id(item_id, true).then(i => {
+      if (i) {
+        i.is_deleted = 1; // close implies delete
+      }
+    });
   }
 
   /**

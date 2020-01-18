@@ -1,9 +1,9 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 
 /**
 * Implements a reminder.
 */
-class Reminder extends Model {
+class Reminder extends DeprecatedModel {
 
   get definition() {
     return {

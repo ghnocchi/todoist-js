@@ -72,7 +72,7 @@ describe('Items Manager', () => {
     const project1 = api.projects.add(`${projectBaseName}1`);
     await api.commit();
 
-    api.items.move([item2.id], { project_id: project1.id + 171717 });
+    api.items.move([item2.id], { project_id: project1.id });
     const response = await api.commit();
     expect(response.items.some(i => i.id === item2.id)).toBe(true);
     expect(response.items.find(i => i.id === item2.id).project_id).toBe(project1.id);

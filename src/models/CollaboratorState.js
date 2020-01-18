@@ -1,8 +1,8 @@
-import Model from './Model';
+import DeprecatedModel from './DeprecatedModel';
 /**
 * Implements a collaborator state.
 */
-class CollaboratorState extends Model {
+class CollaboratorState extends DeprecatedModel {
   //
 }
 

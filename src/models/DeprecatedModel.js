@@ -1,7 +1,7 @@
 /**
 * Implements a generic object.
 */
-class Model {
+class DeprecatedModel {
   constructor(data, api) {
     this.data = data;
     this.api = api;
@@ -24,4 +24,4 @@ class Model {
   }
 }
 
-export default Model;
+export default DeprecatedModel;

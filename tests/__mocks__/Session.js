@@ -12,6 +12,8 @@ class Session {
 
   reloadBase() {
     this.syncResponse = JSON.parse(JSON.stringify(require('../__fixtures__/syncResponse').syncResponse));
+    const me = this;
+    this.syncResponse.data = () => me;
   }
 
   popRequest() {

@@ -19,13 +19,7 @@ class Manager {
   * @return {Promise}
   */
   get_by_id(obj_id, only_local = false) {
-    let response = null;
-    this.api.state[this.state_name].find((obj) => {
-      // 2nd term has weak comparison for num-str match.
-      if (obj.id === obj_id || obj.temp_id === obj_id) {
-        response = obj;
-      }
-    });
+    let response = this.api.state[this.state_name].find(obj => obj.id === obj_id || obj.temp_id === obj_id);
 
     if (!response && !only_local && this.object_type) {
       // this isn't matching with Python code

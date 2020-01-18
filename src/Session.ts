@@ -46,31 +46,31 @@ interface ITodoistRequestData {
 
 interface ITodoistResponseData {
   tooltips: object;
-  filters: [[object]];
+  filters: object[][];
   sync_status: ITodoistStatus;
   temp_id_mapping: object,
-  labels: [[object]];
-  locations: [];
-  project_notes: [[object]];
+  labels: object[][];
+  locations: object[][];
+  project_notes: object[][];
   user: object;
   full_sync: boolean;
   sync_token: string;
   day_orders: object;
-  projects: [[object]];
-  collaborators: [[object]];
+  projects: object[][];
+  collaborators: object[][];
   stats: object;
   day_orders_timestamp: string;
   live_notifications_last_read_id: number;
-  items: [[object]];
-  incomplete_item_ids: [number];
-  reminders: [[object]];
+  items: object[][];
+  incomplete_item_ids: number[];
+  reminders: object[][];
   user_settings: object;
-  incomplete_project_ids: [number];
-  notes: [[object]];
-  live_notifications: [[object]];
-  sections: [[object]];
-  collaborator_states: [[object]];
-  due_exceptions: [[object]];
+  incomplete_project_ids: number[];
+  notes: object[][];
+  live_notifications: object[][];
+  sections: object[][];
+  collaborator_states: object[][];
+  due_exceptions: object[][];
 }
 
 interface ITodoistResponse extends AxiosResponse<ITodoistResponseData> {
@@ -82,7 +82,7 @@ type TodoistResponse = ITodoistResponse | ITodoistResponseData;
  * @class Session
  */
 class Session {
-  sessionConfig: SessionConfig;
+  public sessionConfig: SessionConfig;
 
   /**
    * @param {Object} config Configuration object with optional params
@@ -233,7 +233,7 @@ class Session {
 
       if (responseData.sync_status) {
         const error: [string, ITodoistError] = <[string, ITodoistError]>Object.entries(responseData.sync_status).find((e: any) =>
-          typeof e[1] === 'object' && e[1].hasOwnProperty('error'));
+          typeof e[1] === 'object' && Object.prototype.hasOwnProperty.call(e[1], 'error'));
         if (error) {
           const [key, err]: [string, ITodoistError] = error;
           throw new Error(`request error: ${key}: [${err.error_code}] ${err.error}`);
