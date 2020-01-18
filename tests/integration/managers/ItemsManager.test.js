@@ -1,7 +1,7 @@
-import API from '../../../src/Api';
+import Api from '../../../src/Api';
 import { env, getDateString, getShortDateString } from '../../helpers';
 
-const api = new API(env.ACCESS_TOKEN);
+const api = new Api(env.ACCESS_TOKEN);
 
 describe('Items Manager', () => {
   const itemBaseName = '_TestItemManager';

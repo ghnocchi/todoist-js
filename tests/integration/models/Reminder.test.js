@@ -1,9 +1,9 @@
 // XXX fails
 
-import API from '../../../src/Api';
+import Api from '../../../src/Api';
 import { env, getDateString, getLongDateString } from '../../helpers';
 
-const api = new API(env.ACCESS_TOKEN);
+const api = new Api(env.ACCESS_TOKEN);
 
 let reminder1;
 let reminder2;

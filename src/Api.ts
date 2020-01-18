@@ -1,9 +1,7 @@
 /**
- * @fileoverview Implements the API that makes it possible to interact with a Todoist user
- *   account and its data.
- * @author Cosmitar (JS Version)
+ * @fileoverview Implements the API that makes it possible to interact with a Todoist user account and its data.
  */
-import Session from './Session';
+import Session, { ITodoistRequestData, ITodoistResponseData, TodoistResponse } from './Session'; // eslint-disable-line no-unused-vars
 // managers
 import ActivityManager from './managers/ActivityManager';
 import BackupsManager from './managers/BackupsManager';
@@ -36,14 +34,60 @@ import Note from './models/Note';
 import Project from './models/Project';
 import ProjectNote from './models/ProjectNote';
 import Reminder from './models/Reminder';
-
+import User from './models/user'; // eslint-disable-line no-unused-vars
 import { generate_uuid } from './utils/uuid';
 
+export interface IApiState {
+  collaborator_states: CollaboratorState[];
+  collaborators: Collaborator[];
+  day_orders: { [key: number]: number };
+  day_orders_timestamp: string,
+  filters: Filter[],
+  items: Item[],
+  labels: Label[],
+  live_notifications: LiveNotification[],
+  live_notifications_last_read_id: number,
+  locations: number[],
+  notes: Note[],
+  project_notes: ProjectNote[],
+  projects: Project[],
+  reminders: Reminder[],
+  settings_notifications: any,
+  user: User,
+}
+
+
 /**
- * @class API
+ * @class Api
  */
-class API {
-  constructor(token) {
+class Api {
+  public api_endpoint: string;
+  public session: Session;
+  public queue: any[];
+  public temp_ids: { [key: string]: number };
+  public state: IApiState;
+  public projects: ProjectsManager;
+  public project_notes: ProjectNotesManager;
+  public items: ItemsManager;
+  public labels: LabelsManager;
+  public filters: FiltersManager;
+  public notes: NotesManager;
+  public live_notifications: LiveNotificationsManager;
+  public reminders: RemindersManager;
+  public locations: LocationsManager;
+  public invitations: InvitationsManager;
+  public biz_invitations: BizInvitationsManager;
+  public user: UserManager;
+  public collaborators: CollaboratorsManager;
+  public collaborator_states: CollaboratorStatesManager;
+  public completed: CompletedManager;
+  public uploads: UploadsManager;
+  public activity: ActivityManager;
+  public business_users: BusinessUsersManager;
+  public templates: TemplatesManager;
+  public backups: BackupsManager;
+
+  constructor(token: string) {
     this.api_endpoint = 'https://todoist.com';
     // Session instance for requests
     this.session = new Session({ token });
@@ -51,6 +95,9 @@ class API {
     this.queue = [];
     // Mapping of temporary ids to real ids
     this.temp_ids = {};
+
+    // Local copy of all of the user's objects
+    this.resetState();
 
     // managers
     this.projects = new ProjectsManager(this);
@@ -73,9 +120,6 @@ class API {
     this.business_users = new BusinessUsersManager(this);
     this.templates = new TemplatesManager(this);
     this.backups = new BackupsManager(this);
-
-    // Local copy of all of the user's objects
-    this.resetState();
   }
 
   resetState() {
@@ -95,17 +139,17 @@ class API {
       projects: [],
       reminders: [],
       settings_notifications: {},
-      user: {},
+      user: <User>{},
     };
   }
 
   /**
    * Performs a GET request prepending the API endpoint.
    * @param {string} resource Requested resource
-   * @param {Object} params
+   * @param {ITodoistRequestData} params
    * @return {Promise}
    */
-  get(resource, params) {
+  get(resource: string, params: ITodoistRequestData): Promise<TodoistResponse> {
     return this.session.get(
       this.get_api_url(resource),
       params,
@@ -115,14 +159,15 @@ class API {
   /**
    * Performs a POST request prepending the API endpoint.
    * @param {string} resource Requested resource
-   * @param {Object} params
+   * @param {ITodoistRequestData} params
+   * @param {Object} customHeaders
    * @return {Promise}
    */
-  post(resource, params, headers) {
+  post(resource: string, params: ITodoistRequestData, customHeaders: any): Promise<TodoistResponse> {
     return this.session.post(
       this.get_api_url(resource),
       params,
-      headers,
+      customHeaders,
     );
   }
 
@@ -130,11 +175,10 @@ class API {
    * Sends to the server the changes that were made locally, and also
    *   fetches the latest updated data from the server.
    * @param {Array.<object>} commands List of commands to be processed.
-   * @param {Object} params
    * @return {Object} Server response
    */
-  async sync(commands = []) {
-    const response = await this.session.get(
+  async sync(commands: any[] = []): Promise<ITodoistResponseData> {
+    const response: ITodoistResponseData = <ITodoistResponseData>await this.session.get(
       this.get_api_url('sync'),
       {
         day_orders_timestamp: this.state.day_orders_timestamp,
@@ -158,33 +202,19 @@ class API {
   }
 
   /**
-   * Performs a server query
-   * @deprecated
-   * @param {Array.<Object>} params List of parameters to query
-   * @return {Promise}
-   */
-  query(params = []) {
-    // eslint-disable-next-line no-console
-    console.warning('You are using a deprecated method "query". Unexpected behaviors might occur. See: https://github.com/Doist/todoist-api/issues/22');
-    return this.session.get(
-      this.get_api_url('query'),
-      { queries: JSON.stringify(params) },
-    );
-  }
-
-  /**
    * Updates the local state, with the data returned by the server after a
    *   sync.
    * @param {Object} syncdata Data returned by {@code this.sync}.
    */
-  async update_state(syncdata) {
+  async update_state(syncdata: ITodoistResponseData) {
     // It is straightforward to update these type of data, since it is
     // enough to just see if they are present in the sync data, and then
     // either replace the local values or update them.
     const keys = ['day_orders', 'day_orders_timestamp', 'live_notifications_last_read_id', 'locations', 'settings_notifications', 'user'];
     keys.map((key) => {
-      if (syncdata[key]) {
-        this.state[key] = syncdata[key];
+      const value: any = (syncdata as any)[key];
+      if (value) {
+        (this.state as any)[key] = value;
       }
     });
 
@@ -205,12 +235,12 @@ class API {
     // necessary to find out whether an object in the sync data is new,
     // updates an existing object, or marks an object to be deleted.  But
     // the same procedure takes place for each of these types of data.
-    let promises = [];
+    let promises: Promise<any>[] = [];
     Object.keys(resp_models_mapping).forEach((datatype) => {
       // Process each object of this specific type in the sync data.
       // Collect a promise for each object due to some this.find_object are asynchronous
       // since they hit the server looking for remote objects
-      const typePromises = (syncdata[datatype] || []).map((remoteObj) => {
+      const typePromises = ((syncdata as any)[datatype] || []).map((remoteObj: any) => {
         return Promise.resolve().then(async () => {
           // Find out whether the object already exists in the local state.
           const localObj = await this.find_object(datatype, remoteObj);
@@ -224,13 +254,13 @@ class API {
             }
           } else {
             // If not, then the object is new and it should be added
-            const newobj = new resp_models_mapping[datatype](remoteObj, this);
-            this.state[datatype].push(newobj);
+            const newobj = new (resp_models_mapping as any)[datatype](remoteObj, this);
+            (this.state as any)[datatype].push(newobj);
           }
         });
       });
 
-      promises = [...promises, ...typePromises];
+      promises.push.apply(promises, typePromises);
     });
     // await for all promises to resolve and continue.
     await Promise.all(promises);
@@ -238,8 +268,8 @@ class API {
     // since sync response isn't including deleted objects, we'll rid of from state
     // all those items marked as to be deleted
     Object.keys(resp_models_mapping).forEach((datatype) => {
-      if (this.state[datatype]) {
-        this.state[datatype] = this.state[datatype].filter(stateObj => stateObj.is_deleted !== 1);
+      if ((this.state as any)[datatype]) {
+        (this.state as any)[datatype] = (this.state as any)[datatype].filter((stateObj: any) => stateObj.is_deleted !== 1);
       }
     });
   }
@@ -251,7 +281,7 @@ class API {
    * @param {Object} obj Object from where to take search paramters.
    * @return {Object|null} Depending on search result.
    */
-  find_object(objtype, obj) {
+  find_object(objtype: string, obj: any): Promise<any> {
     if (objtype === 'collaborators') {
       return this.collaborators.get_by_id(obj.id);
     } else if (objtype === 'collaborator_states') {
@@ -273,8 +303,8 @@ class API {
     } else if (objtype === 'reminders') {
       return this.reminders.get_by_id(obj.id, true);
     }
-    return null;
 
+    return null;
   }
 
   /**
@@ -285,10 +315,10 @@ class API {
    * @param {number} new_id New item id.
    * @return {boolean} Whether temporary id was found or not.
    */
-  replace_temp_id(temp_id, new_id) {
+  replace_temp_id(temp_id: string, new_id: number) {
     const datatypes = ['filters', 'items', 'labels', 'notes', 'project_notes', 'projects', 'reminders'];
     for (let typeIndex = 0; typeIndex < datatypes.length; typeIndex++) {
-      const stateObjects = this.state[datatypes[typeIndex]];
+      const stateObjects = (this.state as any)[datatypes[typeIndex]];
       for (let objIndex = 0; objIndex < stateObjects.length; objIndex++) {
         const obj = stateObjects[objIndex];
         if (obj.temp_id === temp_id) {
@@ -307,7 +337,7 @@ class API {
    * Generates a uuid.
    * @return {string}
    */
-  generate_uuid() {
+  generate_uuid(): string {
     return generate_uuid();
   }
 
@@ -316,17 +346,17 @@ class API {
    * @param {string} resource The API resource.
    * @return {string}
    */
-  get_api_url(resource = '') {
+  get_api_url(resource: string = ''): string {
     return `${this.api_endpoint}/API/v8/${resource}`;
   }
 
   /**
    * Adds a new task.
    * @param {string} content The description of the task.
-   * @param {Object} params All other paramters to set in the new task.
+   * @param {Object} params All other parameters to set in the new task.
    * @return {Promise}
    */
-  add_item(content, params = {}) {
+  add_item(content: string, params: any = {}): Promise<TodoistResponse> {
     Object.assign(params, { content });
     if (params.labels) {
       params.labels = JSON.stringify(params.labels);
@@ -340,7 +370,7 @@ class API {
    * synchronized to the server, unless one of the aforementioned Sync API
    * calls is called directly.
    */
-  async commit(raise_on_error = true) {
+  async commit(raise_on_error: boolean = true): Promise<TodoistResponse> {
     if (!this.queue.length) {
       return null;
     }
@@ -365,4 +395,4 @@ class API {
 }
 
 
-export default API;
+export default Api;

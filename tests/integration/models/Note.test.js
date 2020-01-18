@@ -1,8 +1,8 @@
 // XXX fails
-import API from '../../../src/Api';
+import Api from '../../../src/Api';
 import { env } from '../../helpers';
 
-const api = new API(env.ACCESS_TOKEN);
+const api = new Api(env.ACCESS_TOKEN);
 
 let note1;
 let item1;

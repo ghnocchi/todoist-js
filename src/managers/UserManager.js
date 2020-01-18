@@ -94,7 +94,7 @@ class UserManager extends Manager {
   * Updates the user's notification settings.
   * @param {string} notification_type
   * @param {string} service
-  * @param {boolen} dont_notify
+  * @param {boolean} dont_notify
   * @return {Promise}
   */
   update_notification_setting(notification_type, service, dont_notify) {

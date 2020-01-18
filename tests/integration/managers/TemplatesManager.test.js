@@ -1,10 +1,10 @@
 // XXX fails
 
 const request = require('request');
-import API from '../../../src/Api';
+import Api from '../../../src/Api';
 import { env } from '../../helpers';
 
-const api = new API(env.ACCESS_TOKEN);
+const api = new Api(env.ACCESS_TOKEN);
 
 // increase timeout for remote response delay
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;

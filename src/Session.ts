@@ -3,6 +3,7 @@
  *   requests, tokens and responses.
  */
 import axios, { AxiosResponse, Method } from 'axios'; // eslint-disable-line no-unused-vars
+import User from './models/User'; // eslint-disable-line no-unused-vars
 import { generate_uuid } from './utils/uuid';
 
 export interface IConfig {
@@ -40,43 +41,44 @@ interface ITodoistStatus {
   [key: string]: string | ITodoistError;
 }
 
-interface ITodoistRequestData {
+export interface ITodoistRequestData {
   [key: string]: (string | number | boolean);
 }
 
-interface ITodoistResponseData {
-  tooltips: object;
-  filters: object[][];
-  sync_status: ITodoistStatus;
-  temp_id_mapping: object,
-  labels: object[][];
-  locations: object[][];
-  project_notes: object[][];
-  user: object;
-  full_sync: boolean;
-  sync_token: string;
-  day_orders: object;
-  projects: object[][];
-  collaborators: object[][];
-  stats: object;
-  day_orders_timestamp: string;
-  live_notifications_last_read_id: number;
-  items: object[][];
-  incomplete_item_ids: number[];
-  reminders: object[][];
-  user_settings: object;
-  incomplete_project_ids: number[];
-  notes: object[][];
-  live_notifications: object[][];
-  sections: object[][];
-  collaborator_states: object[][];
-  due_exceptions: object[][];
+export interface ITodoistResponseData {
+  tooltips?: object;
+  filters?: object[][];
+  sync_status?: ITodoistStatus;
+  temp_id_mapping?: any,
+  labels?: object[][];
+  locations?: object[][];
+  project_notes?: object[][];
+  user?: User;
+  full_sync?: boolean;
+  sync_token?: string;
+  day_orders?: object;
+  projects?: object[][];
+  collaborators?: object[][];
+  stats?: object;
+  day_orders_timestamp?: string;
+  live_notifications_last_read_id?: number;
+  items?: object[][];
+  incomplete_item_ids?: number[];
+  reminders?: object[][];
+  user_settings?: object;
+  incomplete_project_ids?: number[];
+  notes?: object[][];
+  live_notifications?: object[][];
+  sections?: object[][];
+  collaborator_states?: object[][];
+  due_exceptions?: object[][];
+  settings_notifications?: any;
 }
 
-interface ITodoistResponse extends AxiosResponse<ITodoistResponseData> {
+export interface ITodoistResponse extends AxiosResponse<ITodoistResponseData> {
 }
 
-type TodoistResponse = ITodoistResponse | ITodoistResponseData;
+export type TodoistResponse = ITodoistResponse | ITodoistResponseData;
 
 /**
  * @class Session
@@ -165,21 +167,21 @@ class Session {
   /**
    * Performs a GET request for the given url and parameters.
    * @param {string} url
-   * @param {Object} data
+   * @param {ITodoistRequestData} data
    * @return {Promise}
    */
-  get(url: string, data = {}): Promise<TodoistResponse> {
+  get(url: string, data: ITodoistRequestData = {}): Promise<TodoistResponse> {
     return this.request(url, 'GET', data);
   }
 
   /**
    * Performs a POST request for the given url and parameters.
    * @param {string} url
-   * @param {Object} data
+   * @param {ITodoistRequestData} data
    * @param {Object} customHeaders
    * @return {Promise}
    */
-  post(url: string, data = {}, customHeaders: any = {}): Promise<TodoistResponse> {
+  post(url: string, data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<TodoistResponse> {
     return this.request(url, 'POST', data, customHeaders);
   }
 

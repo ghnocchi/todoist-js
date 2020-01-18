@@ -1,8 +1,8 @@
-import API from '../../src/Api';
+import Api from '../../src/Api';
 import { env } from '../helpers';
 
-const api = new API(env.ACCESS_TOKEN);
-const api2 = new API(env.ALTERNATIVE_ACCOUNT_ACCESS_TOKEN);
+const api = new Api(env.ACCESS_TOKEN);
+const api2 = new Api(env.ALTERNATIVE_ACCOUNT_ACCESS_TOKEN);
 
 let project1;
 let project2;
