@@ -1,5 +1,10 @@
 /* eslint-disable no-unused-vars */
+// @ts-ignore
 class Session {
+  private _requests: any[];
+  public syncResponse: any;
+  public sessionConfig: any;
+
   constructor() {
     this.reloadBase();
     this._requests = [];
@@ -26,12 +31,12 @@ class Session {
     return copy;
   }
 
-  get(url, data = {}) {
+  get(url: any, data: any = {}) {
     return this.request(url, 'GET', data);
   }
 
   // noinspection JSMethodCanBeStatic
-  request(url, method = 'GET', data = {}, customHeaders = {}) {
+  request(url: any, method: string = 'GET', data: any = {}, customHeaders: any = {}) {
     this._requests.push({ url, method, data, customHeaders });
     const syncBase = this.syncResponse;
     if (url.endsWith('/sync')) {
@@ -42,5 +47,6 @@ class Session {
   }
 }
 
+// @ts-ignore
 export default Session;
 

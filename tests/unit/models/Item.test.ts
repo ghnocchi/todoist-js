@@ -1,20 +1,22 @@
-import API from '../../../src/Api';
+import Api from '../../../src/Api';
+import Item from '../../../src/models/Item'; // eslint-disable-line no-unused-vars
 import { env, matcher, getDateString } from '../../helpers';
 
 // mock actual API communication
 jest.mock('../../../src/Session', () => require('../../__mocks__/Session'));
 const expectUuid = expect.stringMatching(matcher.uuid);
 
-let api = new API(env.ACCESS_TOKEN);
+const api: Api = new Api(env.ACCESS_TOKEN);
+const session: any = api.session;
 
-const itemBaseName = '_TestItem';
+const itemBaseName: string = '_TestItem';
 
-let item1;
-let inbox;
+let item1: Item;
+let inbox: Item;
 
 beforeEach(async () => {
   // reset cache
-  api.session.reset();
+  session.reset();
   api.resetState();
 
   await api.sync();
@@ -28,7 +30,7 @@ beforeEach(async () => {
 });
 
 // check that the command JSON sent by the API looks as expected
-function checkCommandsSent(request, expectedCommands) {
+function checkCommandsSent(request: any, expectedCommands: any) {
   const expectedData = expect.objectContaining({
     commands: expectedCommands,
   });
@@ -49,7 +51,7 @@ function checkCommandsSent(request, expectedCommands) {
 describe('Items model', () => {
   test('should do setup sync and item_add commit', async () => {
     // check that the setup beforeAll() calls look correct
-    const [originalSync, itemAdd] = api.session.clearRequests();
+    const [originalSync, itemAdd] = session.clearRequests();
     checkCommandsSent(originalSync, []);
     checkCommandsSent(itemAdd, [
       {
@@ -74,15 +76,15 @@ describe('Items model', () => {
     item1.complete();
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.checked = 1;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemComplete = api.session.popRequest();
+    const itemComplete = session.popRequest();
     checkCommandsSent(itemComplete, [
       {
         type: 'item_complete',
@@ -103,15 +105,15 @@ describe('Items model', () => {
     item1.uncomplete();
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.checked = 0;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemUncomplete = api.session.popRequest();
+    const itemUncomplete = session.popRequest();
     checkCommandsSent(itemUncomplete, [
       {
         type: 'item_uncomplete',
@@ -123,25 +125,25 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.find(i => i.id === item1.id).checked).toBeFalsy();
+    expect(api.state.items.find((i: Item) => i.id === item1.id).checked).toBeFalsy();
     expect(item1.checked).toBeFalsy();
   });
 
   test('should update its content', async () => {
     // queue update command
-    const content = `${itemBaseName}Updated1`;
+    const content: string = `${itemBaseName}Updated1`;
     item1.update({ content });
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.content = item1.content;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemUpdate = api.session.popRequest();
+    const itemUpdate: any = session.popRequest();
     checkCommandsSent(itemUpdate, [
       {
         type: 'item_update',
@@ -154,30 +156,30 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.some(i => i.content === content)).toBe(true);
+    expect(api.state.items.some((i: Item) => i.content === content)).toBe(true);
     expect(item1.content).toEqual(content);
     expect((await api.items.get_by_id(item1.id, true)).content).toEqual(item1.content);
   });
 
   test('should update its date info', async () => {
-    const item2 = api.state.items.find(i => i.content === `${itemBaseName}2`);
+    const item2 = api.state.items.find((i: Item) => i.content === `${itemBaseName}2`);
 
-    const today = new Date(new Date().getTime());
-    const todayStr = getDateString(today);
+    const today: Date = new Date(new Date().getTime());
+    const todayStr: string = getDateString(today);
 
     // queue complete the recurring daily task, give new due date of today
     item2.update_date_complete({ date: todayStr, string: 'every day' });
 
     // prepare pseudo response
-    let response = api.session.syncResponse;
-    let respItem = response.items.find(i => i.id === item2.id);
+    let response: any = session.syncResponse;
+    let respItem: any = response.items.find((i: Item) => i.id === item2.id);
     respItem.due = { date: todayStr };
 
     // send command
     await api.commit();
 
     // check commands sent
-    let itemUpdateDateComplete = api.session.popRequest();
+    let itemUpdateDateComplete = session.popRequest();
     checkCommandsSent(itemUpdateDateComplete, [
       {
         type: 'item_update_date_complete',
@@ -193,22 +195,22 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.find(i => i.id === item2.id).due.date).toEqual(todayStr);
+    expect(api.state.items.find((i: Item) => i.id === item2.id).due.date).toEqual(todayStr);
     expect(item2.due.date).toEqual(todayStr);
 
     // complete the recurring daily task with no explicit new due date
     item2.update_date_complete();
 
     // prepare pseudo response
-    response = api.session.syncResponse;
-    respItem = response.items.find(i => i.id === item2.id);
+    response = session.syncResponse;
+    respItem = response.items.find((i: Item) => i.id === item2.id);
     respItem.due = null;
 
     // send command
     await api.commit();
 
     // check commands sent
-    itemUpdateDateComplete = api.session.popRequest();
+    itemUpdateDateComplete = session.popRequest();
     checkCommandsSent(itemUpdateDateComplete, [
       {
         type: 'item_update_date_complete',
@@ -221,7 +223,7 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.find(i => i.id === item2.id).due).toEqual(null);
+    expect(api.state.items.find((i: Item) => i.id === item2.id).due).toEqual(null);
     expect(item2.due).toEqual(null);
   });
 
@@ -230,15 +232,15 @@ describe('Items model', () => {
     item1.complete();
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.checked = 1;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemComplete = api.session.popRequest();
+    const itemComplete = session.popRequest();
     checkCommandsSent(itemComplete, [
       {
         type: 'item_complete',
@@ -250,7 +252,7 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.find(i => i.id === item1.id).checked).toBeTruthy();
+    expect(api.state.items.find((i: Item) => i.id === item1.id).checked).toBeTruthy();
 
     // toggle it back
     item1.uncomplete();
@@ -258,7 +260,7 @@ describe('Items model', () => {
     await api.commit();
 
     // check commands sent
-    const itemUncomplete = api.session.popRequest();
+    const itemUncomplete = session.popRequest();
     checkCommandsSent(itemUncomplete, [
       {
         type: 'item_uncomplete',
@@ -270,7 +272,7 @@ describe('Items model', () => {
     ]);
 
     // check local cache and object state
-    expect(api.state.items.find(i => i.id === item1.id).checked).toBeFalsy();
+    expect(api.state.items.find((i: Item) => i.id === item1.id).checked).toBeFalsy();
   });
 
   test('should move itself into a project', async () => {
@@ -290,16 +292,16 @@ describe('Items model', () => {
     ];
 
     for (const c of cases) {
-      const dest = {};
+      const dest: any = {};
       dest[c.dest_type] = c.dest_id;
 
       // queue command
       item1.move(dest);
 
       // prepare pseudo response
-      const response = api.session.syncResponse;
+      const response: any = session.syncResponse;
       // eslint-disable-next-line no-loop-func
-      const respItem = response.items.find(i => i.id === item1.id);
+      const respItem: any = response.items.find((i: Item) => i.id === item1.id);
       respItem[c.dest_type] = c.dest_id;
 
       // send command
@@ -310,7 +312,7 @@ describe('Items model', () => {
       };
 
       // check commands sent
-      let itemMove = api.session.popRequest();
+      let itemMove: any = session.popRequest();
       checkCommandsSent(itemMove, [
         {
           type: 'item_move',
@@ -321,10 +323,11 @@ describe('Items model', () => {
 
       // check local cache and object state
       // eslint-disable-next-line no-loop-func
-      expect(api.state.items.find(i => i.id === item1.id)[c.dest_type]).toBe(c.dest_id);
+      expect(api.state.items.find((i: Item) => i.id === item1.id)[c.dest_type]).toBe(c.dest_id);
     }
 
-    // check for invalid destination
+    // check for invalid destination.  ignore TS error, which is exactly the point
+    // @ts-ignore
     expect(() => item1.move({ invalid: 666 })).toThrow(/invalid/);
   });
 
@@ -333,15 +336,15 @@ describe('Items model', () => {
     item1.delete();
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.is_deleted = 1;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemDelete = api.session.popRequest();
+    const itemDelete = session.popRequest();
     checkCommandsSent(itemDelete, [
       {
         type: 'item_delete',
@@ -354,7 +357,7 @@ describe('Items model', () => {
 
     // check local cache and object state
     expect(item1.is_deleted).toBe(1);
-    expect(api.state.items.some(i => i.id === item1.id)).toBe(false);
+    expect(api.state.items.some((i: Item) => i.id === item1.id)).toBe(false);
   });
 
   test('should close itself', async () => {
@@ -362,15 +365,15 @@ describe('Items model', () => {
     item1.close();
 
     // prepare pseudo response
-    const response = api.session.syncResponse;
-    const respItem = response.items.find(i => i.id === item1.id);
+    const response: any = session.syncResponse;
+    const respItem: any = response.items.find((i: Item) => i.id === item1.id);
     respItem.is_deleted = 1;
 
     // send command
     await api.commit();
 
     // check commands sent
-    const itemClose = api.session.popRequest();
+    const itemClose = session.popRequest();
     checkCommandsSent(itemClose, [
       {
         type: 'item_close',
@@ -384,6 +387,6 @@ describe('Items model', () => {
     // close is a shortcut for item_complete / item_update_date_complete,
     // should do more complete checking of multiple scenarios (recurring task, tasks with children, etc)
     expect(item1.is_deleted).toBe(1);
-    expect(api.state.items.some(i => i.id === item1.id)).toBe(false);
+    expect(api.state.items.some((i: Item) => i.id === item1.id)).toBe(false);
   });
 });
