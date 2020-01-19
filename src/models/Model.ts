@@ -1,20 +1,20 @@
-import Api from '../Api'; // eslint-disable-line no-unused-vars
+import Manager from '../managers/Manager'; // eslint-disable-line no-unused-vars
 
 /**
  * Implements a generic object.
  */
 class Model {
-  public api: Api;
+  protected manager: Manager;
   public temp_id: string;
 
-  constructor(api: Api) {
-    this.api = api;
+  constructor(manager: Manager) {
+    this.manager = manager;
     this.temp_id = '';
   }
 
   get properties(): any {
     // extract properties specific to the subclass
-    const { api, temp_id, ...args } = this; // eslint-disable-line no-unused-vars
+    const { manager, temp_id, ...args } = this; // eslint-disable-line no-unused-vars
     return args;
   }
 

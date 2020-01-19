@@ -23,7 +23,7 @@ describe('Items Manager', () => {
     await api.commit();
   });
 
-  test('should add an item', async () => {
+  test('should add an item #smoke', async () => {
     const response = await api.commit();
     expect(response.items.some(i => i.content === `${itemBaseName}1`)).toBe(true);
     expect(api.state.items.some(i => i.content === `${itemBaseName}1`)).toBe(true);

@@ -37,7 +37,7 @@ describe('Items model', () => {
     expect(api.state.items.find(i => i.id === item1.id).checked).toBeFalsy();
   });
 
-  test('should update its content', async () => {
+  test('should update its content #smoke', async () => {
     item1.update({ content: `${itemBaseName}Updated1` });
     await api.commit();
     expect(api.state.items.some(i => i.content === `${itemBaseName}Updated1`)).toBe(true);
@@ -101,7 +101,7 @@ describe('Items model', () => {
     expect(api.state.items.find(i => i.id === item1.id).checked).toBeFalsy();
   });
 
-  test('should move itself into a project', async () => {
+  test('should move itself into a project #smoke', async () => {
     let project1;
     try {
       project1 = api.projects.add(`${projectBaseName}1`);

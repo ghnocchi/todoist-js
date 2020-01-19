@@ -6,9 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "test:unit": "yarn test tests/unit",
+    "test:unit": "jest tests/unit",
+    "test:smoke": "jest \"--testNamePattern=#smoke\"",
     "lint": "eslint src",
-    "build": "webpack"
+    "build": "rm -rf dist/ && webpack"
   },
   "keywords": [
     "todoist",

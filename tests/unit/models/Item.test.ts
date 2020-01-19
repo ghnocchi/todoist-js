@@ -162,7 +162,7 @@ describe('Items model', () => {
   });
 
   test('should update its date info', async () => {
-    const item2 = api.state.items.find((i: Item) => i.content === `${itemBaseName}2`);
+    const item2: Item = api.state.items.find((i: Item) => i.content === `${itemBaseName}2`);
 
     const today: Date = new Date(new Date().getTime());
     const todayStr: string = getDateString(today);
@@ -325,10 +325,6 @@ describe('Items model', () => {
       // eslint-disable-next-line no-loop-func
       expect(api.state.items.find((i: Item) => i.id === item1.id)[c.dest_type]).toBe(c.dest_id);
     }
-
-    // check for invalid destination.  ignore TS error, which is exactly the point
-    // @ts-ignore
-    expect(() => item1.move({ invalid: 666 })).toThrow(/invalid/);
   });
 
   test('should delete itself', async () => {

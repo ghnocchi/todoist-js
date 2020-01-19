@@ -1,9 +1,9 @@
 import Model from './Model';
-import Api from '../Api'; // eslint-disable-line no-unused-vars
+import ItemsManager from '../managers/ItemsManager'; // eslint-disable-line no-unused-vars
 
-type NumericBoolean = 0 | 1;
+export type NumericBoolean = 0 | 1;
 
-interface IDueDate {
+export interface IDueDate {
   date?: string;
   timezone?: string,
   string?: string,
@@ -44,9 +44,13 @@ class Item extends Model {
   public sync_id?: number;
   public date_added?: string;
 
-  constructor(data: Partial<Item> = {}, api: Api) {
-    super(api);
+  constructor(data: Partial<Item> = {}, manager: ItemsManager) {
+    super(manager);
     Object.assign(this, data);
+  }
+
+  get mgr(): ItemsManager {
+    return <ItemsManager>this.manager;
   }
 
   /**
@@ -54,7 +58,7 @@ class Item extends Model {
    * @param {Object} data
    */
   update(data: Partial<Item> = {}) {
-    this.api.items.update(this.id, <any>data); // TODO: remove casting once manager is TS
+    this.mgr.update(this.id, data);
     Object.assign(this, data);
   }
 
@@ -62,7 +66,7 @@ class Item extends Model {
    * Deletes item.
    */
   delete() {
-    this.api.items.delete([this.id]);
+    this.mgr.delete([this.id]);
     this.is_deleted = 1;
   }
 
@@ -72,14 +76,14 @@ class Item extends Model {
    */
   move(destination: IItemDestination) {
     Object.assign(this, destination);
-    this.api.items.move([this.id], destination);
+    this.mgr.move([this.id], destination);
   }
 
   /**
    * Marks item as closed.
    */
   close() {
-    this.api.items.close(this.id);
+    this.mgr.close(this.id);
     this.is_deleted = 1;
   }
 
@@ -88,7 +92,7 @@ class Item extends Model {
    * @param {boolean} force_history
    */
   complete(force_history: NumericBoolean = 0) {
-    this.api.items.complete([this.id], force_history);
+    this.mgr.complete([this.id], force_history);
     this.checked = 1;
     this.in_history = force_history;
   }
@@ -97,7 +101,7 @@ class Item extends Model {
    * Marks item as not completed.
    */
   uncomplete() {
-    this.api.items.uncomplete([this.id]);
+    this.mgr.uncomplete([this.id]);
     this.checked = 0;
   }
 
@@ -105,8 +109,8 @@ class Item extends Model {
    * Completes a recurring task.
    * @param {IDueDate} due Todoist Due date object
    */
-  update_date_complete(due: IDueDate = null) {
-    this.api.items.update_date_complete(this.id, due);
+  update_date_complete(due?: IDueDate) {
+    this.mgr.update_date_complete(this.id, due);
     this.due = due;
   }
 }

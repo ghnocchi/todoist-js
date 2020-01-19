@@ -2,6 +2,7 @@
  * @fileoverview Implements the API that makes it possible to interact with a Todoist user account and its data.
  */
 import Session, { ITodoistRequestData, ITodoistResponseData, TodoistResponse } from './Session'; // eslint-disable-line no-unused-vars
+
 // managers
 import ActivityManager from './managers/ActivityManager';
 import BackupsManager from './managers/BackupsManager';
@@ -23,6 +24,7 @@ import RemindersManager from './managers/RemindersManager';
 import TemplatesManager from './managers/TemplatesManager';
 import UploadsManager from './managers/UploadsManager';
 import UserManager from './managers/UserManager';
+
 // models
 import Collaborator from './models/Collaborator';
 import CollaboratorState from './models/CollaboratorState';
@@ -143,6 +145,19 @@ class Api {
     };
   }
 
+  getApiState(name: string): any {
+    return (this.state as any)[name];
+  }
+
+  setApiState(name: string, value: any) {
+    (this.state as any)[name] = value;
+  }
+
+  addToApiState(name: string, value: any) {
+    const curState = this.getApiState(name);
+    curState.push(value);
+  }
+
   /**
    * Performs a GET request prepending the API endpoint.
    * @param {string} resource Requested resource
@@ -214,7 +229,7 @@ class Api {
     keys.map((key) => {
       const value: any = (syncdata as any)[key];
       if (value) {
-        (this.state as any)[key] = value;
+        this.setApiState(key, value);
       }
     });
 
@@ -254,8 +269,8 @@ class Api {
             }
           } else {
             // If not, then the object is new and it should be added
-            const newobj = new (resp_models_mapping as any)[datatype](remoteObj, this);
-            (this.state as any)[datatype].push(newobj);
+            const newObj = new (resp_models_mapping as any)[datatype](remoteObj, this);
+            this.addToApiState(datatype, newObj);
           }
         });
       });
@@ -268,8 +283,9 @@ class Api {
     // since sync response isn't including deleted objects, we'll rid of from state
     // all those items marked as to be deleted
     Object.keys(resp_models_mapping).forEach((datatype) => {
-      if ((this.state as any)[datatype]) {
-        (this.state as any)[datatype] = (this.state as any)[datatype].filter((stateObj: any) => stateObj.is_deleted !== 1);
+      const curState = this.getApiState(datatype);
+      if (curState) {
+        this.setApiState(datatype, curState.filter((stateObj: any) => stateObj.is_deleted !== 1));
       }
     });
   }
@@ -318,7 +334,7 @@ class Api {
   replace_temp_id(temp_id: string, new_id: number) {
     const datatypes = ['filters', 'items', 'labels', 'notes', 'project_notes', 'projects', 'reminders'];
     for (let typeIndex = 0; typeIndex < datatypes.length; typeIndex++) {
-      const stateObjects = (this.state as any)[datatypes[typeIndex]];
+      const stateObjects = this.getApiState(datatypes[typeIndex]);
       for (let objIndex = 0; objIndex < stateObjects.length; objIndex++) {
         const obj = stateObjects[objIndex];
         if (obj.temp_id === temp_id) {
