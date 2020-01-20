@@ -1,73 +1,90 @@
 /**
  * @fileoverview Implements the API that makes it possible to interact with a Todoist user account and its data.
  */
-import Session, { ITodoistRequestData, ITodoistResponseData, TodoistResponse } from './Session'; // eslint-disable-line no-unused-vars
+import Session, { ITodoistRequestData, ITodoistStatus, ITodoistResponseData } from './Session';
+import ApiState from './ApiState';
+// eslint-disable-line no-unused-vars
 
 // managers
-import ActivityManager from './managers/ActivityManager';
-import BackupsManager from './managers/BackupsManager';
-import BizInvitationsManager from './managers/BizInvitationsManager';
-import BusinessUsersManager from './managers/BusinessUsersManager';
-import CollaboratorsManager from './managers/CollaboratorsManager';
-import CollaboratorStatesManager from './managers/CollaboratorStatesManager';
-import CompletedManager from './managers/CompletedManager';
-import FiltersManager from './managers/FiltersManager';
-import InvitationsManager from './managers/InvitationsManager';
-import ItemsManager from './managers/ItemsManager';
-import LabelsManager from './managers/LabelsManager';
-import LiveNotificationsManager from './managers/LiveNotificationsManager';
-import LocationsManager from './managers/LocationsManager';
-import NotesManager from './managers/NotesManager';
-import ProjectNotesManager from './managers/ProjectNotesManager';
-import ProjectsManager from './managers/ProjectsManager';
-import RemindersManager from './managers/RemindersManager';
-import TemplatesManager from './managers/TemplatesManager';
-import UploadsManager from './managers/UploadsManager';
-import UserManager from './managers/UserManager';
+import ActivityManager from '../managers/ActivityManager';
+import BackupsManager from '../managers/BackupsManager';
+import BizInvitationsManager from '../managers/BizInvitationsManager';
+import BusinessUsersManager from '../managers/BusinessUsersManager';
+import CollaboratorsManager from '../managers/CollaboratorsManager';
+import CollaboratorStatesManager from '../managers/CollaboratorStatesManager';
+import CompletedManager from '../managers/CompletedManager';
+import FiltersManager from '../managers/FiltersManager';
+import InvitationsManager from '../managers/InvitationsManager';
+import ItemsManager from '../managers/ItemsManager';
+import LabelsManager from '../managers/LabelsManager';
+import LiveNotificationsManager from '../managers/LiveNotificationsManager';
+import LocationsManager from '../managers/LocationsManager';
+import MiscManager from '../managers/MiscManager';
+import NotesManager from '../managers/NotesManager';
+import ProjectNotesManager from '../managers/ProjectNotesManager';
+import ProjectsManager from '../managers/ProjectsManager';
+import RemindersManager from '../managers/RemindersManager';
+import TemplatesManager from '../managers/TemplatesManager';
+import UploadsManager from '../managers/UploadsManager';
+import UserManager from '../managers/UserManager';
 
 // models
-import Collaborator from './models/Collaborator';
-import CollaboratorState from './models/CollaboratorState';
-import Filter from './models/Filter';
-import Item from './models/Item';
-import Label from './models/Label';
-import LiveNotification from './models/LiveNotification';
-import Note from './models/Note';
-import Project from './models/Project';
-import ProjectNote from './models/ProjectNote';
-import Reminder from './models/Reminder';
-import User from './models/user'; // eslint-disable-line no-unused-vars
-import { generate_uuid } from './utils/uuid';
+import Collaborator from '../models/Collaborator';
+import CollaboratorState from '../models/CollaboratorState';
+import Filter from '../models/Filter';
+import Item from '../models/Item';
+import Label from '../models/Label';
+import LiveNotification from '../models/LiveNotification';
+import Note from '../models/Note';
+import Project from '../models/Project';
+import ProjectNote from '../models/ProjectNote';
+import Reminder from '../models/Reminder';
+import User from '../models/User'; // eslint-disable-line no-unused-vars
 
-export interface IApiState {
-  collaborator_states: CollaboratorState[];
-  collaborators: Collaborator[];
-  day_orders: { [key: number]: number };
-  day_orders_timestamp: string,
-  filters: Filter[],
-  items: Item[],
-  labels: Label[],
-  live_notifications: LiveNotification[],
-  live_notifications_last_read_id: number,
-  locations: number[],
-  notes: Note[],
-  project_notes: ProjectNote[],
-  projects: Project[],
-  reminders: Reminder[],
-  settings_notifications: any,
-  user: User,
+interface UnusedITodoistSyncResponseData {
+  tooltips?: object;
+  filters?: object[][];
+  sync_status?: ITodoistStatus;
+  temp_id_mapping?: any,
+  labels?: object[][];
+  locations?: object[][];
+  project_notes?: object[][];
+  user?: User;
+  full_sync?: boolean;
+  sync_token?: string;
+  projects?: object[][];
+  collaborators?: object[][];
+  stats?: object;
+  live_notifications_last_read_id?: number;
+  items?: object[][];
+  incomplete_item_ids?: number[];
+  reminders?: object[][];
+  user_settings?: object;
+  incomplete_project_ids?: number[];
+  notes?: object[][];
+  live_notifications?: object[][];
+  sections?: object[][];
+  collaborator_states?: object[][];
+  due_exceptions?: object[][];
 }
-
 
 /**
  * @class Api
  */
 class Api {
-  public api_endpoint: string;
-  public session: Session;
-  public queue: any[];
-  public temp_ids: { [key: string]: number };
-  public state: IApiState;
+  private _apiEndpoint: string;
+  private _queue: any[];
+  private _states: { [key: string]: ApiState };
+
+  public session: Session; // TODO: revisit, public
+
+  // special handling values in API
+  private day_orders?: any = {};
+  private day_orders_timestamp?: string = '';
+  private settings_notifications?: any = {};
+
+  // TO BE DELETED
+  public state: any;
   public projects: ProjectsManager;
   public project_notes: ProjectNotesManager;
   public items: ItemsManager;
@@ -90,72 +107,57 @@ class Api {
   public backups: BackupsManager;
 
   constructor(token: string) {
-    this.api_endpoint = 'https://todoist.com';
+    this._apiEndpoint = 'https://todoist.com';
     // Session instance for requests
     this.session = new Session({ token });
     // Requests to be sent are appended here
-    this.queue = [];
-    // Mapping of temporary ids to real ids
-    this.temp_ids = {};
+    this._queue = [];
 
-    // Local copy of all of the user's objects
-    this.resetState();
-
-    // managers
-    this.projects = new ProjectsManager(this);
-    this.project_notes = new ProjectNotesManager(this);
-    this.items = new ItemsManager(this);
-    this.labels = new LabelsManager(this);
-    this.filters = new FiltersManager(this);
-    this.notes = new NotesManager(this);
-    this.live_notifications = new LiveNotificationsManager(this);
-    this.reminders = new RemindersManager(this);
-    this.locations = new LocationsManager(this);
-    this.invitations = new InvitationsManager(this);
-    this.biz_invitations = new BizInvitationsManager(this);
-    this.user = new UserManager(this);
-    this.collaborators = new CollaboratorsManager(this);
-    this.collaborator_states = new CollaboratorStatesManager(this);
-    this.completed = new CompletedManager(this);
-    this.uploads = new UploadsManager(this);
-    this.activity = new ActivityManager(this);
-    this.business_users = new BusinessUsersManager(this);
-    this.templates = new TemplatesManager(this);
-    this.backups = new BackupsManager(this);
-  }
-
-  resetState() {
-    this.state = {
-      collaborator_states: [],
-      collaborators: [],
-      day_orders: {},
-      day_orders_timestamp: '',
-      filters: [],
-      items: [],
-      labels: [],
-      live_notifications: [],
-      live_notifications_last_read_id: -1,
-      locations: [],
-      notes: [],
-      project_notes: [],
-      projects: [],
-      reminders: [],
-      settings_notifications: {},
-      user: <User>{},
+    // Local copy of all of the fetched objects and their managers
+    this._states = {
+      activity: new ApiState(['activity'], new ActivityManager(this)),
+      backups: new ApiState(['backups'], new BackupsManager(this)),
+      biz_invitations: new ApiState(['biz_invitations'], new BizInvitationsManager(this)),
+      business_users: new ApiState(['business_users'], new BusinessUsersManager(this)),
+      collaborator_states: new ApiState(['collaborator_states'], new CollaboratorStatesManager(this)),
+      collaborators: new ApiState(['collaborators'], new CollaboratorsManager(this)),
+      completed: new ApiState(['completed'], new CompletedManager(this)),
+      misc: new ApiState(['day_orders', 'day_orders_timestamp', 'settings_notifications'], new MiscManager(this)),
+      filters: new ApiState(['filters'], new FiltersManager(this)),
+      invitations: new ApiState(['invitations'], new InvitationsManager(this)),
+      items: new ApiState(['items'], new ItemsManager(this)),
+      labels: new ApiState(['labels'], new LabelsManager(this)),
+      live_notifications: new ApiState(['live_notifications', 'live_notifications_last_read_id'], new LiveNotificationsManager(this)),
+      locations: new ApiState(['locations'], new LocationsManager(this)),
+      notes: new ApiState(['notes'], new NotesManager(this)),
+      project_notes: new ApiState(['project_notes'], new ProjectNotesManager(this)),
+      projects: new ApiState(['projects'], new ProjectsManager(this)),
+      reminders: new ApiState(['reminders'], new RemindersManager(this)),
+      templates: new ApiState(['templates'], new TemplatesManager(this)),
+      uploads: new ApiState(['uploads'], new UploadsManager(this)),
+      user: new ApiState(['user'], new UserManager(this)),
     };
   }
 
-  getApiState(name: string): any {
-    return (this.state as any)[name];
+  resetState() {
+    Object.values(this._states).forEach((a: ApiState) => a.reset());
   }
 
-  setApiState(name: string, value: any) {
-    (this.state as any)[name] = value;
+  /**
+   * place command in queue of commands to be sent on the next commit
+   * @param command
+   */
+  enqueue(command: any) {
+    this._queue.push(command);
   }
 
-  addToApiState(name: string, value: any) {
-    const curState = this.getApiState(name);
-    curState.push(value);
+  /**
+   * Returns the full API url to hit.
+   * @param {string} resource The API resource.
+   * @return {string}
+   */
+  getApiUrl(resource: string = ''): string {
+    return `${this._apiEndpoint}/API/v8/${resource}`;
   }
 
   /**
@@ -164,9 +166,9 @@ class Api {
    * @param {ITodoistRequestData} params
    * @return {Promise}
    */
-  get(resource: string, params: ITodoistRequestData): Promise<TodoistResponse> {
+  get(resource: string, params: ITodoistRequestData): Promise<ITodoistResponseData> {
     return this.session.get(
-      this.get_api_url(resource),
+      this.getApiUrl(resource),
       params,
     );
   }
@@ -178,9 +180,9 @@ class Api {
    * @param {Object} customHeaders
    * @return {Promise}
    */
-  post(resource: string, params: ITodoistRequestData, customHeaders: any): Promise<TodoistResponse> {
+  post(resource: string, params: ITodoistRequestData, customHeaders: any): Promise<ITodoistResponseData> {
     return this.session.post(
-      this.get_api_url(resource),
+      this.getApiUrl(resource),
       params,
       customHeaders,
     );
@@ -193,10 +195,13 @@ class Api {
    * @return {Object} Server response
    */
   async sync(commands: any[] = []): Promise<ITodoistResponseData> {
+    const miscManager = <MiscManager>this._states.misc.manager;
+    const { day_orders_timestamp } = miscManager.current;
+
     const response: ITodoistResponseData = <ITodoistResponseData>await this.session.get(
-      this.get_api_url('sync'),
+      this.getApiUrl('sync'),
       {
-        day_orders_timestamp: this.state.day_orders_timestamp,
+        day_orders_timestamp,
         include_notification_settings: 1,
         resource_types: JSON.stringify(['all']),
         commands: JSON.stringify(commands),
@@ -207,11 +212,11 @@ class Api {
     if (temp_keys.length > 0) {
       temp_keys.forEach((temp_id) => {
         const new_id = response.temp_id_mapping[temp_id];
-        this.temp_ids[temp_id] = new_id;
         this.replace_temp_id(temp_id, new_id);
       });
     }
-    await this.update_state(response);
+
+    await this.updateLocalState(response);
 
     return response;
   }
@@ -221,7 +226,7 @@ class Api {
    *   sync.
    * @param {Object} syncdata Data returned by {@code this.sync}.
    */
-  async update_state(syncdata: ITodoistResponseData) {
+  async updateLocalState(syncdata: ITodoistResponseData) {
     // It is straightforward to update these type of data, since it is
     // enough to just see if they are present in the sync data, and then
     // either replace the local values or update them.
@@ -350,21 +355,34 @@ class Api {
   }
 
   /**
-   * Generates a uuid.
-   * @return {string}
+   * Commits all requests that are queued.  Note that, without calling this
+   * method none of the changes that are made to the objects are actually
+   * synchronized to the server, unless one of the aforementioned Sync API
+   * calls is called directly.
    */
-  generate_uuid(): string {
-    return generate_uuid();
+  async commit(raise_on_error: boolean = true): Promise<ITodoistResponseData> {
+    if (!this._queue.length) {
+      return null;
+    }
+
+    const response = await this.sync(this._queue);
+    if (response.sync_status) {
+      if (raise_on_error) {
+        Object.keys(response.sync_status).forEach((key) => {
+          if (response.sync_status[key] !== 'ok') {
+            const failedReq = this._queue.filter(e => e.uuid === key);
+            const failedReqStr = failedReq ? JSON.stringify(failedReq) : '(not found)';
+            this._queue = [];
+            throw new Error(`sync fail (${key}, ${failedReqStr}, ${JSON.stringify(response.sync_status[key])})`);
+          }
+        });
+      }
+    }
+
+    this._queue = [];
+    return response;
   }
 
-  /**
-   * Returns the full API url to hit.
-   * @param {string} resource The API resource.
-   * @return {string}
-   */
-  get_api_url(resource: string = ''): string {
-    return `${this.api_endpoint}/API/v8/${resource}`;
-  }
 
   /**
    * Adds a new task.
@@ -372,7 +390,9 @@ class Api {
    * @param {Object} params All other parameters to set in the new task.
    * @return {Promise}
    */
-  add_item(content: string, params: any = {}): Promise<TodoistResponse> {
+  async add_item(content: string, params: any = {}): Promise<ITodoistResponseData> {
+    // TODO: signature should match mgr one, and this should simply delegate to it
+    // should this even exist?  just use the ItemManager
     Object.assign(params, { content });
     if (params.labels) {
       params.labels = JSON.stringify(params.labels);
@@ -380,34 +400,7 @@ class Api {
     return this.get('add_item', params);
   }
 
-  /**
-   * Commits all requests that are queued.  Note that, without calling this
-   * method none of the changes that are made to the objects are actually
-   * synchronized to the server, unless one of the aforementioned Sync API
-   * calls is called directly.
-   */
-  async commit(raise_on_error: boolean = true): Promise<TodoistResponse> {
-    if (!this.queue.length) {
-      return null;
-    }
 
-    const response = await this.sync(this.queue);
-    if (response.sync_status) {
-      if (raise_on_error) {
-        Object.keys(response.sync_status).forEach((key) => {
-          if (response.sync_status[key] !== 'ok') {
-            const failedReq = this.queue.filter(e => e.uuid === key);
-            const failedReqStr = failedReq ? JSON.stringify(failedReq) : '(not found)';
-            this.queue = [];
-            throw new Error(`sync fail (${key}, ${failedReqStr}, ${JSON.stringify(response.sync_status[key])})`);
-          }
-        });
-      }
-    }
-
-    this.queue = [];
-    return response;
-  }
 }
 
 

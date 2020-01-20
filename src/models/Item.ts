@@ -1,48 +1,37 @@
 import Model from './Model';
 import ItemsManager from '../managers/ItemsManager'; // eslint-disable-line no-unused-vars
-
-export type NumericBoolean = 0 | 1;
-
-export interface IDueDate {
-  date?: string;
-  timezone?: string,
-  string?: string,
-  lang?: string,
-  is_recurring?: boolean,
-}
+import { DateTimeRFC3339, IDueDate, NumericBoolean, TodoistId } from '../types'; // eslint-disable-line no-unused-vars
 
 export interface IItemDestination {
-  parent_id?: number;
-  project_id?: number;
-  section_id?: number;
+  parent_id?: TodoistId;
+  project_id?: TodoistId;
+  section_id?: TodoistId;
 }
 
 /**
  * Implements an Item.
  */
 class Item extends Model {
-  public id?: number;
-  public user_id?: number;
-  public parent_id?: number;
-  public project_id?: number;
-  public section_id?: number;
+  public user_id?: TodoistId;
+  public parent_id?: TodoistId;
+  public project_id?: TodoistId;
+  public section_id?: TodoistId;
   public content?: string;
   public due?: IDueDate;
-  public indent?: number;
   public priority?: number;
-  public item_order?: number;
   public day_order?: number;
-  public collapsed?: number;
-  public children?: number[];
-  public labels?: number[];
-  public assigned_by_uid?: number;
-  public responsible_uid?: number;
+  public child_order?: number;
+  public collapsed?: NumericBoolean;
+  public children?: TodoistId[];
+  public labels?: TodoistId[];
+  public assigned_by_uid?: TodoistId;
+  public responsible_uid?: TodoistId;
   public checked?: NumericBoolean;
   public in_history?: NumericBoolean;
   public is_deleted?: NumericBoolean;
   public is_archived?: NumericBoolean;
   public sync_id?: number;
-  public date_added?: string;
+  public date_added?: DateTimeRFC3339;
 
   constructor(data: Partial<Item> = {}, manager: ItemsManager) {
     super(manager);
@@ -91,10 +80,14 @@ class Item extends Model {
    * Marks item as completed.
    * @param {boolean} force_history
    */
-  complete(force_history: NumericBoolean = 0) {
-    this.mgr.complete([this.id], force_history);
+  complete(force_history?: boolean) {
+    const args: any = {};
+    if (force_history) {
+      args.force_history = true;
+    }
+    this.mgr.complete([this.id], args);
     this.checked = 1;
-    this.in_history = force_history;
+    this.in_history = force_history ? 1 : 0;
   }
 
   /**

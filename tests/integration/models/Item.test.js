@@ -1,4 +1,4 @@
-import Api from '../../../src/Api';
+import Api from '../../../src/api/Api';
 import { env, getDateString, getShortDateString } from '../../helpers';
 
 const api = new Api(env.ACCESS_TOKEN);

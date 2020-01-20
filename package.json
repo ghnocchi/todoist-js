@@ -37,7 +37,8 @@
     ],
     "testMatch": [
       "<rootDir>/tests/**/*.test.[jt]s?(x)"
-    ]
+    ],
+    "testEnvironment": "node"
   },
   "devDependencies": {
     "@babel/core": "^7.7.7",

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Session from '../../src/Session';
+import Session from '../../../src/api/Session';
 
 jest.mock('axios');
 
@@ -229,8 +229,9 @@ describe('Session', () => {
       url: baseUrl,
     };
 
-    // should return top-level response, not data
-    await expect(session.request(baseUrl, 'POST', postData)).resolves.toEqual(templateResponse);
+    // should return top-level response in 'response' property, not just data portion
+    const returnedResponse = { response: { ...templateResponse } };
+    await expect(session.request(baseUrl, 'POST', postData)).resolves.toEqual(returnedResponse);
 
     // verify request payload
     expect(axios).toHaveBeenCalledWith(expect.objectContaining(req));

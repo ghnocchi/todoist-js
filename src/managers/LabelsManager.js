@@ -1,5 +1,6 @@
 import Manager from './Manager';
 import Label from './../models/Label';
+import generateUuid from '../utils/uuid';
 
 class LabelsManager extends Manager {
 
@@ -18,7 +19,7 @@ class LabelsManager extends Manager {
   */
   add(name, params) {
     const obj = new Label({ name }, this.api);
-    obj.temp_id = obj.id = this.api.generate_uuid();
+    obj.temp_id = obj.id = generateUuid();
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 

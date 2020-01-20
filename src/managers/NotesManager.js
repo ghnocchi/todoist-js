@@ -1,5 +1,6 @@
 import GenericNotesManager from './GenericNotesManager';
 import Note from './../models/Note';
+import generateUuid from '../utils/uuid';
 
 class NotesManager extends GenericNotesManager {
 
@@ -16,7 +17,7 @@ class NotesManager extends GenericNotesManager {
   */
   add(item_id, content, params) {
     const obj = new Note({ item_id, content }, this.api);
-    obj.temp_id = obj.id = this.api.generate_uuid();
+    obj.temp_id = obj.id = generateUuid();
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 

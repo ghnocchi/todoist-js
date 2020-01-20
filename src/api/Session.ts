@@ -1,10 +1,10 @@
 /**
- * @fileoverview Handles session related actions like configuration,
- *   requests, tokens and responses.
+ * @fileoverview Handles session related actions like configuration and tokens,
+ *   and actual HTTP requests and responses.
  */
 import axios, { AxiosResponse, Method } from 'axios'; // eslint-disable-line no-unused-vars
-import User from './models/User'; // eslint-disable-line no-unused-vars
-import { generate_uuid } from './utils/uuid';
+import generateUuid from '../utils/uuid';
+import { TodoistId } from '../types'; // eslint-disable-line no-unused-vars
 
 export interface IConfig {
   app_token?: string;
@@ -32,53 +32,35 @@ export class SessionConfig implements IConfig {
   exchange_token_url?: string;
 }
 
-interface ITodoistError {
-  error_code: number;
-  error: string;
-}
-
-interface ITodoistStatus {
-  [key: string]: string | ITodoistError;
-}
-
 export interface ITodoistRequestData {
   [key: string]: (string | number | boolean);
 }
 
-export interface ITodoistResponseData {
-  tooltips?: object;
-  filters?: object[][];
-  sync_status?: ITodoistStatus;
-  temp_id_mapping?: any,
-  labels?: object[][];
-  locations?: object[][];
-  project_notes?: object[][];
-  user?: User;
-  full_sync?: boolean;
+// Errors from Todoist (as distinct from errors trying to reach Todoist) are in the data portion of the response
+// for sync, it is buried in sync_status because it is the single response can correspond to multiple commands.
+// for individual calls (eg, items/get), it is standalone.
+export interface ITodoistErrorResponse {
+  error_code?: number;
+  error?: string;
+  error_tag?: string;
+  http_code?: number;
+  error_extra?: any;
+}
+
+export interface ITodoistStatus {
+  [key: string]: string | ITodoistErrorResponse;
+}
+
+// data portion is data or error (or in sync case, within data.sync_status field)
+export interface ITodoistResponseData extends ITodoistErrorResponse {
   sync_token?: string;
-  day_orders?: object;
-  projects?: object[][];
-  collaborators?: object[][];
-  stats?: object;
-  day_orders_timestamp?: string;
-  live_notifications_last_read_id?: number;
-  items?: object[][];
-  incomplete_item_ids?: number[];
-  reminders?: object[][];
-  user_settings?: object;
-  incomplete_project_ids?: number[];
-  notes?: object[][];
-  live_notifications?: object[][];
-  sections?: object[][];
-  collaborator_states?: object[][];
-  due_exceptions?: object[][];
-  settings_notifications?: any;
+  sync_status?: ITodoistStatus;
+  temp_id_mapping?: { [key: string]: TodoistId },
+  response?: any;
 }
 
-export interface ITodoistResponse extends AxiosResponse<ITodoistResponseData> {
-}
-
-export type TodoistResponse = ITodoistResponse | ITodoistResponseData;
+// wrap data portion in full axios response envelope
+export type TodoistResponse = AxiosResponse<ITodoistResponseData>;
 
 /**
  * @class Session
@@ -111,7 +93,7 @@ class Session {
       client_secret: '',
       code: '',
       scope: 'data:read_write,data:delete,project:delete',
-      state: generate_uuid(),
+      state: generateUuid(),
       token: '',
       sync_token: '*',
       auth_url: 'https://todoist.com/oauth/authorize',
@@ -155,7 +137,7 @@ class Session {
    * Requests an access token to the server.
    * @return {Promise}
    */
-  getAccessToken(): Promise<TodoistResponse> {
+  getAccessToken(): Promise<ITodoistResponseData> {
     return this.request(this.sessionConfig.exchange_token_url, 'POST', {
       client_id: this.sessionConfig.client_id,
       client_secret: this.sessionConfig.client_secret,
@@ -170,7 +152,7 @@ class Session {
    * @param {ITodoistRequestData} data
    * @return {Promise}
    */
-  get(url: string, data: ITodoistRequestData = {}): Promise<TodoistResponse> {
+  get(url: string, data: ITodoistRequestData = {}): Promise<ITodoistResponseData> {
     return this.request(url, 'GET', data);
   }
 
@@ -181,7 +163,7 @@ class Session {
    * @param {Object} customHeaders
    * @return {Promise}
    */
-  post(url: string, data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<TodoistResponse> {
+  post(url: string, data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<ITodoistResponseData> {
     return this.request(url, 'POST', data, customHeaders);
   }
 
@@ -198,7 +180,7 @@ class Session {
    * @param {Object} data
    * @param {Object} customHeaders
    */
-  request(url: string, method: string = 'GET', data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<TodoistResponse> {
+  request(url: string, method: string = 'GET', data: ITodoistRequestData = {}, customHeaders: any = {}): Promise<ITodoistResponseData> {
     let headers: object = {
       ...{
         Accept: 'application/json, text/plain, */*',
@@ -217,27 +199,27 @@ class Session {
     }
 
     // assemble GET vs POST parameters
-    let request_url: string = `${url}`;
+    let requestUrl: string = `${url}`;
     let payloadData: string = null;
     if (/GET|HEAD/.test(method)) {
-      request_url = `${request_url}?${this._dataToQueryString(data)}`;
+      requestUrl = `${requestUrl}?${this._dataToQueryString(data)}`;
     } else {
       payloadData = JSON.stringify(data);
     }
 
     return axios({
-      url: request_url,
+      url: requestUrl,
       method: <Method>method,
       headers: headers,
       data: payloadData,
-    }).then((response: ITodoistResponse) => {
+    }).then((response: TodoistResponse) => {
       const responseData: ITodoistResponseData = response.data;
 
       if (responseData.sync_status) {
-        const error: [string, ITodoistError] = <[string, ITodoistError]>Object.entries(responseData.sync_status).find((e: any) =>
+        const error: [string, ITodoistErrorResponse] = <[string, ITodoistErrorResponse]>Object.entries(responseData.sync_status).find((e: any) =>
           typeof e[1] === 'object' && Object.prototype.hasOwnProperty.call(e[1], 'error'));
         if (error) {
-          const [key, err]: [string, ITodoistError] = error;
+          const [key, err]: [string, ITodoistErrorResponse] = error;
           throw new Error(`request error: ${key}: [${err.error_code}] ${err.error}`);
         }
       }
@@ -251,8 +233,9 @@ class Session {
       }
 
       // Todoist API always returns a JSON, even on error, except on templates as files
+      // for attachments, push top level into response property
       if (response.headers && /attachment/.test(response.headers['content-disposition'])) {
-        return response;
+        return { response };
       }
 
       return responseData;

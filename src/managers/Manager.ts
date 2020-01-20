@@ -1,68 +1,93 @@
-import Api from '../Api';
-import { ITodoistRequestData, TodoistResponse } from "../Session";
+import Api from '../api/Api'; // eslint-disable-line no-unused-vars
+import { ITodoistRequestData, ITodoistResponseData } from '../api/Session'; // eslint-disable-line no-unused-vars
+import { ObjectId, TodoistId } from '../types'; // eslint-disable-line no-unused-vars
+import ApiState from '../api/ApiState'; // eslint-disable-line no-unused-vars
+import generateUuid from '../utils/uuid';
 
-class Manager {
-  private api: Api;
+abstract class Manager {
+  private _api: Api;
+  private _apiState: ApiState;
 
   constructor(api: Api) {
-    this.api = api;
+    this._api = api;
   }
 
-  // should be overridden in a subclass
-  protected get state_name(): string {
-    return '';
+  get apiState(): ApiState {
+    return this._apiState;
   }
 
-  // should be overridden in a subclass
-  protected get object_type(): string {
-    return '';
+  set apiState(value: ApiState) {
+    this._apiState = value;
   }
 
-  // return subclass-appropriate API state cache
-  protected get apiState(): any {
-    return this.api.getApiState(this.state_name);
-  }
-
-  // add object to subclass-appropriate API state cache
   protected addToApiState(value: any): any {
-    return this.api.addToApiState(this.state_name, value);
+    return this._apiState.add(value);
   }
 
-  // get resource by id, should be overridden in subclass
-  protected get(id: number): Promise<TodoistResponse> {
+  /**
+   * facade to update all local state
+   * @param data response data to update into state
+   */
+  protected updateLocalState(data: ITodoistResponseData) {
+    this._api.updateLocalState(data);
+  }
+
+  /**
+   * default lookup of matching value in API state
+   * subclass overrides as necessary
+   * @param objData, model attribute values
+   */
+  findInApiState(objData: any): any {
+    // the common case just looks up by primary ID
+    return this.getLocalById(objData.id);
+  }
+
+  /**
+   * subclass overrides to create a model instance from the given data
+   * @param data, model attribute values
+   */
+  abstract create(data: any): any;
+
+  /**
+   * subclass overrides to fetch remote resource, default implementation returns null for objects that do not support remote lookup
+   * @param {TodoistId} id of object to fetch
+   */
+  // eslint-disable-next-line no-unused-vars
+  protected get(id: TodoistId): Promise<ITodoistResponseData> {
     return null;
   }
 
-  // fetch remote resource
-  protected getResource(resource: string, params: ITodoistRequestData): Promise<TodoistResponse> {
-    return this.api.get(resource, params);
+  /**
+   * API helper function to fetch a remote resource
+   * @param resourcePath
+   * @param params
+   */
+  protected getRemoteResource(resourcePath: string, params: ITodoistRequestData): Promise<ITodoistResponseData> {
+    return this._api.get(resourcePath, params);
   }
 
-  // generate UUID
-  protected generate_uuid(): string {
-    return this.api.generate_uuid();
-  }
-
-  // get from local state by id
-  getLocalById(objId: number): any {
-    return this.api.getApiState(this.state_name).find((obj: any) => obj.id === objId || obj.temp_id === objId);
+  /**
+   * Finds and returns the object from local state based on its id.
+   * @param {number} objId
+   * @return {object} matching object if found, undefined if not
+   */
+  getLocalById(objId: ObjectId): any {
+    return this.apiState.find((obj: any): boolean => {
+      if (typeof objId === 'string') {
+        return (obj.temp_id === objId);
+      }
+      return (obj.id === objId);
+    });
   }
 
   /**
    * Finds and returns the object based on its id.
    * @param {number} objId
-   * @param {boolean} onlyLocal
    * @return {Promise}
    */
-  get_by_id(objId: number, onlyLocal: boolean = false): Promise<TodoistResponse> {
-    // try state cache first
-    let response = this.getLocalById(objId);
-
-    // if not found, and remote querying allowed and supported, attempt fetch
-    if (!response && !onlyLocal && this.object_type) {
-      response = this.get(objId);
-    }
-
+  getById(objId: TodoistId): Promise<ITodoistResponseData> {
+    // try state cache first, and if not found, attempt remote fetch
+    const response = this.getLocalById(objId) || this.get(objId);
     return Promise.resolve(response);
   }
 
@@ -75,7 +100,7 @@ class Manager {
   queueCmd(cmdDef: any, cmdArgs: any = {}) {
     const cmd = Object.assign(
       {
-        uuid: this.api.generate_uuid()
+        uuid: generateUuid()
       },
       (
         typeof cmdDef === 'string' ? { type: cmdDef } : cmdDef
@@ -85,7 +110,7 @@ class Manager {
       }
     );
 
-    this.api.queue.push(cmd);
+    this._api.enqueue(cmd);
     return cmd;
   }
 }

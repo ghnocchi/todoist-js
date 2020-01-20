@@ -1,5 +1,6 @@
 import Manager from './Manager';
 import Reminder from './../models/Reminder';
+import generateUuid from '../utils/uuid';
 
 class RemindersManager extends Manager {
 
@@ -18,7 +19,7 @@ class RemindersManager extends Manager {
   */
   add(item_id, params) {
     const obj = new Reminder({ item_id }, this.api);
-    obj.temp_id = obj.id = this.api.generate_uuid();
+    obj.temp_id = obj.id = generateUuid();
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 

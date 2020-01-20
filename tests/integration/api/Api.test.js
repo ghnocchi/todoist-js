@@ -1,16 +1,16 @@
-import Api from '../../src/Api';
-import { env } from '../helpers';
+import Api from '../../../src/api/Api';
+import { env } from '../../helpers';
 
 const api = new Api(env.ACCESS_TOKEN);
 
 describe('Api tests', () => {
   test('Should get api url', () => {
     const resource = 'test';
-    expect(api.get_api_url(resource)).toBe(`${api.api_endpoint}/API/v8/${resource}`);
+    expect(api.getApiUrl(resource)).toBe(`${api.api_endpoint}/API/v8/${resource}`);
   });
 
   test('Should make a valid request (getting productivity stats)', async () => {
-    const response = await api.session.request(api.get_api_url('completed/get_stats'), 'POST');
+    const response = await api.session.request(api.getApiUrl('completed/get_stats'), 'GET');
     // noinspection JSUnresolvedVariable
     expect(response.karma_trend).toBeDefined();
   });

@@ -17,7 +17,7 @@ class UserManager extends Manager {
     this.queueCmd('update_goals', params);
   }
 
-  get(key = false, is_default = false) {
+  TODO_fixme_get(key = false, is_default = false) {
     let ret = this.api.state.user;
     if (key) {
       ret = ret.get(key, is_default);

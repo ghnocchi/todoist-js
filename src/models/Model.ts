@@ -5,6 +5,7 @@ import Manager from '../managers/Manager'; // eslint-disable-line no-unused-vars
  */
 class Model {
   protected manager: Manager;
+  public id: number;
   public temp_id: string;
 
   constructor(manager: Manager) {

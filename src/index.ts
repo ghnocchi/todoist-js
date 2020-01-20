@@ -1,3 +1,3 @@
-import { default as TodoistAPI } from './Api';
+import { default as TodoistAPI } from './api/Api';
 
 export default TodoistAPI;

@@ -1,5 +1,6 @@
 import Manager from './Manager';
 import Project from './../models/Project';
+import generateUuid from '../utils/uuid';
 
 class ProjectsManager extends Manager {
   get state_name() {
@@ -17,7 +18,7 @@ class ProjectsManager extends Manager {
   */
   add(name, params) {
     const obj = new Project({ name }, this.api);
-    obj.temp_id = obj.id = `$${this.api.generate_uuid()}`;
+    obj.temp_id = obj.id = `$${generateUuid()}`;
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 

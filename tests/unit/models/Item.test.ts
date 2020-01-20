@@ -1,9 +1,9 @@
-import Api from '../../../src/Api';
+import Api from '../../../src/api/Api';
 import Item from '../../../src/models/Item'; // eslint-disable-line no-unused-vars
 import { env, matcher, getDateString } from '../../helpers';
 
 // mock actual API communication
-jest.mock('../../../src/Session', () => require('../../__mocks__/Session'));
+jest.mock('../../../src/api/Session', () => require('../../__mocks__/api/Session'));
 const expectUuid = expect.stringMatching(matcher.uuid);
 
 const api: Api = new Api(env.ACCESS_TOKEN);

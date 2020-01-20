@@ -1,5 +1,5 @@
 import Model from './Model';
-import Api from '../Api'; // eslint-disable-line no-unused-vars
+import Api from '../api/Api'; // eslint-disable-line no-unused-vars
 
 /**
  * Implements a User.

@@ -3502,7 +3502,7 @@ jest-diff@^24.3.0, jest-diff@^24.9.0:
     jest-get-type "^24.9.0"
     pretty-format "^24.9.0"
 
-jest-docblock@^24.3.0, jest-docblock@^24.9.0:
+jest-docblock@^24.3.0:
   version "24.9.0"
   resolved "https://registry.yarnpkg.com/jest-docblock/-/jest-docblock-24.9.0.tgz#7970201802ba560e1c4092cc25cbedf5af5a8ce2"
   integrity sha512-F1DjdpDMJMA1cN6He0FNYNZlo3yYmOtRUnktrT9Q37njYzC5WEaDdmbynIgy0L/IvXvvgsG8OsqhLPXTpfmZAA==
@@ -3657,14 +3657,6 @@ jest-resolve@^24.9.0:
     chalk "^2.0.1"
     jest-pnp-resolver "^1.2.1"
     realpath-native "^1.1.0"
-
-jest-runner-groups@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/jest-runner-groups/-/jest-runner-groups-1.0.0.tgz#642bc9bf0bd1e18226dc15aaa288cfbc70522945"
-  integrity sha512-JpMLknSVYJnXeSAZ1VvX8IXALMIMvlGz2rvelmaU46u7r3IC0I1IWBJUMe+tAkKN82EJHMftI0N466hgHOoqZw==
-  dependencies:
-    jest-docblock "^24.9.0"
-    jest-runner "^24.9.0"
 
 jest-runner@^24.9.0:
   version "24.9.0"

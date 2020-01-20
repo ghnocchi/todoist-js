@@ -1,5 +1,6 @@
 import Manager from './Manager';
 import Filter from './../models/Filter';
+import generateUuid from '../utils/uuid';
 
 class FiltersManager extends Manager {
 
@@ -19,7 +20,7 @@ class FiltersManager extends Manager {
   */
   add(name, query, params) {
     const obj = new Filter({ name, query }, this.api);
-    obj.temp_id = obj.id = this.api.generate_uuid();
+    obj.temp_id = obj.id = generateUuid();
     Object.assign(obj.data, params);
     this.api.state[this.state_name].push(obj);
 
